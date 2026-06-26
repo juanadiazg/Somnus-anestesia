@@ -1542,7 +1542,11 @@ function renderRegTable(){
     body.innerHTML='<tr><td colspan="'+(params.length+5)+'" style="text-align:center;color:var(--muted);padding:18px">Sin registros aún. Inicia el cronómetro y pulsa "Registrar ahora".</td></tr>';
   }else{
     body.innerHTML=registros.map((r,i)=>
-      '<tr><td>'+r.time+'</td><td>'+r.min+'</td>'+
+      '<tr>'+
+      '<td><input type="time" value="'+r.time+'" data-action="editRegTime" data-idx="'+i+'" '+
+        'style="border:none;background:transparent;font-size:13px;color:var(--teal-d);font-weight:600;'+
+        'width:72px;padding:2px;cursor:pointer;font-family:inherit"></td>'+
+      '<td>'+r.min+'</td>'+
       params.map(p=>'<td>'+(r.vals[p.key]||'—')+'</td>').join('')+
       '<td style="font-size:12px">'+(r.plano||'—')+'</td>'+
       '<td class="note-cell" title="'+(r.nota||'')+'">'+(r.nota||'')+'</td>'+
@@ -1635,6 +1639,12 @@ function limpiarReg(){
   const nt=document.getElementById('r_nota');if(nt)nt.value='';
 }
 function delReg(i){registros.splice(i,1);renderRegTable();renderChart();}
+function editRegTime(idx, val){
+  if(idx >= 0 && idx < registros.length){
+    registros[idx].time = val;
+    guardarSesion(true);
+  }
+}
 
 /* ============ ALARMA SONORA (WebAudio, sin archivos) ============ */
 let audioCtx=null;
@@ -2496,7 +2506,15 @@ function actualizarIndicadorGuardado(estado){
 /* ── Auto-guardar en cualquier cambio del formulario ──────────────── */
 function activarAutoGuardado(){
   document.addEventListener('input',  ()=>guardarSesion(false), true);
-  document.addEventListener('change', ()=>guardarSesion(false), true);
+  document.addEventListener('change', function(e){
+    /* Edición de hora en tabla de registros */
+    var el = e.target;
+    if(el && el.dataset && el.dataset.action === 'editRegTime'){
+      editRegTime(parseInt(el.dataset.idx), el.value);
+      return;
+    }
+    guardarSesion(false);
+  }, true);
   // Guardar también cuando se registra un parámetro intraoperatorio
   const _registrar_orig = window._registrar_orig || registrar;
   window._registrar_orig = _registrar_orig;
