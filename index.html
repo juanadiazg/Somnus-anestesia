@@ -491,7 +491,9 @@ input[type=date],select,textarea{
       <button class="toggle" data-action="multiToggle">Bloqueo regional</button>
       <button class="toggle" data-action="multiToggle">Neuroaxial</button>
       <button class="toggle" data-action="multiToggle">Sedación</button>
+      <button class="toggle toggle-otro" data-action="multiToggle" data-otro-target="otro-tipo">Otro</button>
     </div>
+    <input id="otro-tipo" class="otro-input" placeholder="Especificar tipo de anestesia…" style="display:none;margin-top:7px;width:100%;font-size:15px">
     <div class="sub-label">Vía aérea</div>
     <div class="toggles" id="t-via">
       <button class="toggle" data-action="singleToggle" data-group="t-via">Endotraqueal</button>
@@ -499,7 +501,9 @@ input[type=date],select,textarea{
       <button class="toggle" data-action="singleToggle" data-group="t-via">Mascarilla facial</button>
       <button class="toggle" data-action="singleToggle" data-group="t-via">Traqueostomía</button>
       <button class="toggle" data-action="singleToggle" data-group="t-via">Sin intubación</button>
+      <button class="toggle toggle-otro" data-action="singleToggle" data-group="t-via" data-otro-target="otro-via">Otro</button>
     </div>
+    <input id="otro-via" class="otro-input" placeholder="Especificar vía aérea…" style="display:none;margin-top:7px;width:100%;font-size:15px">
     <div class="grid g4" style="margin-top:13px">
       <div class="field"><label>N° sonda ET</label><input id="f_sonda" placeholder="Ej: 7.5"></div>
       <div class="field"><label>Cuff (cmH₂O)</label><input id="f_cuff" placeholder="—"></div>
@@ -518,7 +522,9 @@ input[type=date],select,textarea{
       <button class="toggle" data-action="singleToggle" data-group="t-vent">PCV</button>
       <button class="toggle" data-action="singleToggle" data-group="t-vent">VCV</button>
       <button class="toggle" data-action="singleToggle" data-group="t-vent">SIMV</button>
+      <button class="toggle toggle-otro" data-action="singleToggle" data-group="t-vent" data-otro-target="otro-vent">Otro</button>
     </div>
+    <input id="otro-vent" class="otro-input" placeholder="Especificar modo ventilatorio…" style="display:none;margin-top:7px;width:100%;font-size:15px">
   </div>
 
   <div class="card">
@@ -1382,9 +1388,40 @@ function updateAsaBadge(){
 function singleToggle(btn,group){
   document.querySelectorAll('#'+group+' .toggle').forEach(t=>{if(t!==btn)t.classList.remove('on');});
   btn.classList.toggle('on');
+  /* Mostrar/ocultar campo "Otro" */
+  var target = btn.dataset.otroTarget;
+  if(target){
+    var inp = document.getElementById(target);
+    if(inp) inp.style.display = btn.classList.contains('on') ? 'block' : 'none';
+  }
+  /* Ocultar campos "Otro" de otros botones del grupo que quedaron off */
+  document.querySelectorAll('#'+group+' .toggle-otro').forEach(function(ob){
+    if(ob !== btn && ob.dataset.otroTarget){
+      var oi = document.getElementById(ob.dataset.otroTarget);
+      if(oi) oi.style.display = 'none';
+    }
+  });
 }
-function multiToggle(btn){btn.classList.toggle('on');}
-function getToggles(group){return Array.from(document.querySelectorAll('#'+group+' .toggle.on')).map(t=>t.textContent).join(', ');}
+function multiToggle(btn){
+  btn.classList.toggle('on');
+  /* Mostrar/ocultar campo "Otro" */
+  var target = btn.dataset.otroTarget;
+  if(target){
+    var inp = document.getElementById(target);
+    if(inp) inp.style.display = btn.classList.contains('on') ? 'block' : 'none';
+  }
+}
+function getToggles(group){
+  return Array.from(document.querySelectorAll('#'+group+' .toggle.on')).map(function(t){
+    /* Si el toggle es "Otro", devolver el valor del input libre */
+    if(t.classList.contains('toggle-otro') && t.dataset.otroTarget){
+      var inp = document.getElementById(t.dataset.otroTarget);
+      var val = inp ? inp.value.trim() : '';
+      return val ? 'Otro: '+val : 'Otro';
+    }
+    return t.textContent.trim();
+  }).join(', ');
+}
 
 /* ============ FÁRMACOS (con catálogos desplegables) ============ */
 function optList(arr,sel){return arr.map(x=>'<option'+(x===sel?' selected':'')+'>'+x+'</option>').join('');}
@@ -1432,6 +1469,9 @@ function addDrug(section,preset){
   /* si selecciona "Otro" mostrar input libre */
   const sel=row.querySelector('select[data-f="farmaco"]');
   sel.addEventListener('change',()=>onDrugSelectChange(sel));
+  /* Listener para el selector de bloqueo loco-regional */
+  const blqSel=row.querySelector('select[data-f="bloqueo"]');
+  if(blqSel) blqSel.addEventListener('change',()=>onBlockSelectChange(blqSel));
   if(section==='mant') refreshMantOptions();
 }
 
@@ -1463,6 +1503,21 @@ function onDrugSelectChange(sel){
   } else if(freeInput){ freeInput.remove(); }
   if(row.closest('#list-mant')) refreshMantOptions();
 }
+function onBlockSelectChange(sel){
+  const row=sel.closest('.drug-row');
+  let freeInput=row.querySelector('input[data-f="bloqueo_otro"]');
+  if(sel.value==='Otro'){
+    if(!freeInput){
+      freeInput=document.createElement('input');
+      freeInput.placeholder='Especificar técnica / bloqueo…';
+      freeInput.setAttribute('data-f','bloqueo_otro');
+      freeInput.style.cssText='font-size:15px;margin-top:6px;grid-column:1/-1;width:100%';
+      /* Insertar debajo del select de bloqueo, dentro de la fila */
+      row.appendChild(freeInput);
+      freeInput.focus();
+    }
+  } else if(freeInput){ freeInput.remove(); }
+}
 function xBtn(id){return '<button class="x-btn" data-action="removeDrugRow" data-id="'+id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>';}
 function removeDrugRow(id){const e=document.getElementById(id);const inMant=e&&e.closest('#list-mant');if(e)e.remove();if(inMant)refreshMantOptions();}
 
@@ -1472,12 +1527,23 @@ function getDrugName(row){
   if(sel&&sel.value==='Otro'&&otro)return otro.value.trim();
   return sel?sel.value.trim():'';
 }
+function getBlockName(row){
+  const sel=row.querySelector('select[data-f="bloqueo"]');
+  if(!sel) return '';
+  if(sel.value==='Otro'){
+    const otro=row.querySelector('input[data-f="bloqueo_otro"]');
+    return otro&&otro.value.trim() ? otro.value.trim() : 'Otro';
+  }
+  return sel.value.trim();
+}
 function getDrugs(listId){
   const list=document.getElementById(listId);if(!list)return[];
   return Array.from(list.querySelectorAll('.drug-row')).map(row=>{
     const o={};
     row.querySelectorAll('[data-f]').forEach(i=>{o[i.dataset.f]=i.value.trim();});
     o.farmaco=getDrugName(row);
+    /* Para loco-regional, resolver "Otro" en el bloqueo */
+    if(listId==='list-loco') o.bloqueo=getBlockName(row);
     return o;
   }).filter(o=>o.farmaco);
 }
@@ -2302,7 +2368,9 @@ function estadoAJSON(){
     'f_intervalo','f_alarma',
     'f_hora_inicio','f_hora_fin',
     'f_fluido','f_extub','f_esternal','f_bipe','f_alta',
-    'f_tipo_recup','f_dolor_post','f_vol_total','f_recom','f_orient'
+    'f_tipo_recup','f_dolor_post','f_vol_total','f_recom','f_orient',
+    /* Campos "Otro" de técnica */
+    'otro-tipo','otro-via','otro-vent'
   ];
   IDS.forEach(id=>{
     const el = document.getElementById(id);
@@ -2384,7 +2452,14 @@ function restaurarSesion(estado){
   /* Toggles */
   Object.entries(estado.toggles||{}).forEach(([grp,activos])=>{
     document.querySelectorAll('#'+grp+' .toggle').forEach(t=>{
-      t.classList.toggle('on', activos.includes(t.textContent.trim()));
+      var isOn = activos.includes(t.textContent.trim()) ||
+                 (t.classList.contains('toggle-otro') && activos.some(function(a){ return a.startsWith('Otro'); }));
+      t.classList.toggle('on', isOn);
+      /* Restaurar visibilidad del input libre si "Otro" estaba activo */
+      if(t.classList.contains('toggle-otro') && t.dataset.otroTarget){
+        var inp = document.getElementById(t.dataset.otroTarget);
+        if(inp) inp.style.display = isOn ? 'block' : 'none';
+      }
     });
   });
 
@@ -2402,6 +2477,16 @@ function restaurarSesion(estado){
         const key = (el.dataset && el.dataset.f) || el.id;
         if(key && rowData[key] !== undefined) el.value = rowData[key];
       });
+      /* Si el bloqueo guardado era "Otro", disparar el listener para crear el input */
+      if(rowData.bloqueo === 'Otro'){
+        const blqSel = lastRow.querySelector('select[data-f="bloqueo"]');
+        if(blqSel){
+          blqSel.value = 'Otro';
+          onBlockSelectChange(blqSel);
+          const blqOtro = lastRow.querySelector('input[data-f="bloqueo_otro"]');
+          if(blqOtro && rowData.bloqueo_otro) blqOtro.value = rowData.bloqueo_otro;
+        }
+      }
     });
   });
 
