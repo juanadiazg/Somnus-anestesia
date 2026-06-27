@@ -783,7 +783,15 @@ input[type=date],select,textarea{
   <input type="hidden" id="f_orient" value="portrait">
   <button class="btn btn-primary btn-lg" data-action="exportPDF">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h4"/></svg>
-    Exportar PDF
+    PDF
+  </button>
+  <button class="btn btn-lg" data-action="compartirPDF" title="Compartir PDF (Mail, WhatsApp, AirDrop…)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Compartir
+  </button>
+  <button class="btn btn-lg" data-action="enviarPorMail" title="Descargar PDF y abrir correo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Mail
   </button>
   <button class="btn btn-lg" data-action="nuevoRegistro">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -2147,6 +2155,8 @@ function exportPDFPortrait(){
     }
   } catch(e){ doc.save(fn); }
   toast('📄 PDF generado — revisa Descargas o la pestaña abierta');
+  /* Retornar blob y filename para compartir */
+  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn };
 }
 
 function exportPDFLandscape(){
@@ -2326,8 +2336,139 @@ function exportPDFLandscape(){
   doc.text('Generado '+new Date().toLocaleString('es-CL'),W-M,bottom+4,{align:'right'});
 
   const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+(val('f_fecha')||new Date().toISOString().slice(0,10))+'.pdf';
-  doc.save(fn);
+  try{
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
+    if(isIOS || isSafari){
+      const dataUri=doc.output('datauristring');
+      const a=document.createElement('a');
+      a.href=dataUri; a.download=fn; a.target='_blank';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>document.body.removeChild(a),200);
+    } else { doc.save(fn); }
+  } catch(e){ doc.save(fn); }
   toast('📄 PDF horizontal generado en una página');
+  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn };
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   COMPARTIR PDF — Web Share API (iOS/Android nativo) + fallback mail
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Genera el PDF y lo devuelve como {blob, fn} sin descargarlo */
+async function generarPDFBlob(){
+  const orient = document.getElementById('f_orient') ? document.getElementById('f_orient').value : 'portrait';
+  /* Llamar la función de exportación correspondiente */
+  let resultado;
+  try {
+    resultado = orient === 'landscape' ? exportPDFLandscape() : exportPDFPortrait();
+  } catch(e) {
+    toast('Error al generar el PDF');
+    console.error(e);
+    return null;
+  }
+  return resultado; /* {blob, fn} */
+}
+
+/* Compartir con Web Share API — abre la hoja de compartir nativa del dispositivo */
+async function compartirPDF(){
+  const res = await generarPDFBlob();
+  if(!res) return;
+  const { blob, fn } = res;
+
+  /* Web Share API nivel 2 (con archivos): iOS 15+, Android Chrome 75+ */
+  if(navigator.canShare && navigator.canShare({ files: [new File([blob], fn, {type:'application/pdf'})] })){
+    try {
+      await navigator.share({
+        title: 'Registro Anestésico SOMNUS',
+        text: 'Registro anestésico — ' + (val('f_paciente')||'paciente') + ' — ' + (val('f_fecha')||''),
+        files: [new File([blob], fn, {type:'application/pdf'})]
+      });
+      toast('✓ PDF compartido');
+      return;
+    } catch(e){
+      if(e.name !== 'AbortError') console.warn('Share error:', e);
+      /* Si el usuario cancela (AbortError), no hacer nada más */
+      if(e.name === 'AbortError') return;
+    }
+  }
+
+  /* Fallback: Web Share API nivel 1 (sin archivos, solo URL de datos) */
+  if(navigator.share){
+    try {
+      await navigator.share({
+        title: 'Registro Anestésico SOMNUS',
+        text: 'El PDF ha sido generado. Revisa tus Descargas y adjúntalo manualmente.'
+      });
+      return;
+    } catch(e){ if(e.name === 'AbortError') return; }
+  }
+
+  /* Fallback final: abrir hoja de opciones personalizada */
+  mostrarOpcionesEnvio(blob, fn);
+}
+
+/* Enviar por correo — abre el cliente de mail con cuerpo predeterminado */
+/* Nota: los navegadores no permiten adjuntar archivos via mailto://  */
+/* Por eso primero descargamos el PDF y luego abrimos el mail */
+async function enviarPorMail(){
+  /* 1. Descargar el PDF en el dispositivo */
+  const res = await generarPDFBlob();
+  if(!res) return;
+  const { blob, fn } = res;
+
+  /* Descargar el archivo */
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fn; a.target = '_blank';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+
+  /* 2. Abrir cliente de correo con instrucciones */
+  const paciente = val('f_paciente') || 'paciente';
+  const fecha    = val('f_fecha')    || new Date().toISOString().slice(0,10);
+  const asunto   = encodeURIComponent('Registro Anestésico — ' + paciente + ' — ' + fecha);
+  const cuerpo   = encodeURIComponent(
+    'Estimado/a:\n\n' +
+    'Adjunto registro anestésico SOMNUS del paciente ' + paciente + ' con fecha ' + fecha + '.\n' +
+    'El archivo PDF se ha descargado en su dispositivo con el nombre:\n' + fn + '\n\n' +
+    'Por favor adjunte el archivo descargado a este correo.\n\n' +
+    'Saludos,\nSOMNUS Anestesiología'
+  );
+  setTimeout(()=>{ window.location.href = 'mailto:?subject=' + asunto + '&body=' + cuerpo; }, 400);
+  toast('📧 PDF descargado — adjúntalo al correo que se abrirá');
+}
+
+/* Hoja de opciones cuando Web Share no está disponible (desktop) */
+function mostrarOpcionesEnvio(blob, fn){
+  const url = URL.createObjectURL(blob);
+  const modal = document.getElementById('modalBg');
+  modal.innerHTML =
+    '<div class="modal">' +
+    '<h3>Enviar PDF</h3>' +
+    '<p style="color:var(--muted);font-size:13px;margin-bottom:16px">El PDF ha sido generado. Elige cómo enviarlo:</p>' +
+    '<div style="display:flex;flex-direction:column;gap:10px">' +
+    '<a href="' + url + '" download="' + fn + '" class="btn btn-primary" style="text-align:center;text-decoration:none" ' +
+      'data-action="revokeObjectUrl" data-url="' + url + '">' +
+      '⬇ Descargar PDF</a>' +
+    '<button class="btn" data-action="cerrarModalYMail" data-fn="' + fn + '">' +
+      '📧 Descargar y abrir Mail</button>' +
+    '<button class="btn" data-action="closeModal">Cerrar</button>' +
+    '</div></div>';
+  modal.classList.add('show');
+  /* Guardar blob para uso posterior */
+  window._pdfBlobPendiente = { blob, fn };
+}
+
+async function cerrarModalYMail(){
+  closeModal();
+  if(window._pdfBlobPendiente){
+    const { fn } = window._pdfBlobPendiente;
+    window._pdfBlobPendiente = null;
+    await enviarPorMail();
+  }
 }
 
 /* ============ INIT ============ */
@@ -2812,7 +2953,11 @@ function init(){
       case 'eliminarAjuste':   eliminarAjuste(parseInt(el.dataset.idx)); break;
       case 'exportarBorrador': exportarBorradorJSON(); break;
       case 'importarBorrador': importarBorradorJSON(); break;
-      case 'cerrarBanner': var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
+      case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
+      case 'compartirPDF':    compartirPDF(); break;
+      case 'enviarPorMail':   enviarPorMail(); break;
+      case 'cerrarModalYMail': cerrarModalYMail(); break;
+      case 'revokeObjectUrl':  setTimeout(()=>{ try{ URL.revokeObjectURL(el.dataset.url); }catch(e){} },1000); break;
       default: console.warn('Unknown action:', action);
     }
   }, false);
