@@ -179,14 +179,11 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 
 /* LIVE PARAMS */
-.params-live{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:9px;margin-bottom:14px}
-.pcard{
-  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);
-  padding:11px 8px;text-align:center;box-shadow:var(--shadow);position:relative;
-}
-.pcard .pl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.2px}
-.pcard .pv{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
-.pcard .pu{font-size:10.5px;color:var(--muted);margin-top:2px}
+
+
+.pcard 
+.pcard 
+.pcard 
 .pcard.alert{border-color:var(--red-b);background:var(--red-l)}
 .pcard.alert .pv{color:var(--red)}
 .pcard.warn{border-color:#e8c878;background:var(--amber-l)}
@@ -335,6 +332,19 @@ input[type=date],select,textarea{
 </div>
 
 <!-- TABS -->
+<!-- Banner aviso file:// — solo visible cuando se abre como archivo local -->
+<div id="file-banner" style="display:none;background:#FAEEDA;border-bottom:1px solid #F0D090;
+  padding:8px 16px;font-size:12px;color:#854F0B;text-align:center;flex-shrink:0">
+  ⚠ <strong>Modo archivo local:</strong> los datos duran solo mientras esta pestaña está abierta.
+  Para guardar entre sesiones, usa el 
+  <a href="https://juanadiazg.github.io/Somnus-anestesia/" target="_blank"
+     style="color:#854F0B;font-weight:700;text-decoration:underline">link de la app</a>
+  e instálala en tu dispositivo.
+  &nbsp;·&nbsp;
+  <button data-action="cerrarBanner"
+    style="background:none;border:none;cursor:pointer;color:#854F0B;font-weight:700;font-size:13px">✕</button>
+</div>
+
 <!-- Radio inputs para control de tabs sin JS -->
 <input type="radio" name="tab" id="tab-paciente" class="tab-radio" checked hidden>
 <input type="radio" name="tab" id="tab-preop" class="tab-radio" hidden>
@@ -583,7 +593,6 @@ input[type=date],select,textarea{
     </div>
   </div>
 
-  <div class="params-live" id="liveParams"></div>
 
   <div class="card">
     <div class="card-head">
@@ -1591,13 +1600,7 @@ function calcPAM(){
     out.value='';
   }
 }
-function renderLiveParams(){
-  const box=document.getElementById('liveParams');
-  box.innerHTML=params.map(p=>
-    '<div class="pcard" id="pc_'+p.key+'"><div class="pl">'+p.label+'</div>'+
-    '<div class="pv" id="pv_'+p.key+'">—</div><div class="pu">'+(p.unit||'')+'</div></div>'
-  ).join('');
-}
+/* renderLiveParams eliminado */
 function renderRegTable(){
   const thead=document.getElementById('regThead');
   thead.innerHTML='<tr><th>Hora</th><th>Min</th>'+
@@ -1643,7 +1646,7 @@ function confirmAddParam(){
   if(!label){toast('Ingresa un nombre');return;}
   const key='custom_'+Date.now().toString(36);
   params.push({key,label,unit,fixed:false,lo:null,hi:null});
-  renderRegGrid();renderLiveParams();renderRegTable();
+  renderRegGrid();renderRegTable();
   closeModal();toast('Parámetro "'+label+'" agregado');
 }
 function removeParam(key){
@@ -1651,7 +1654,7 @@ function removeParam(key){
   if(!p||p.fixed)return;
   if(!confirm('¿Quitar el parámetro "'+p.label+'"? Los valores ya registrados en la tabla se conservan.'))return;
   params=params.filter(x=>x.key!==key);
-  renderRegGrid();renderLiveParams();renderRegTable();
+  renderRegGrid();renderRegTable();
 }
 function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('modalBg').innerHTML='';}
 
@@ -1874,7 +1877,7 @@ function nuevoRegistro(){
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
   params=params.filter(p=>p.fixed);
-  renderRegGrid();renderLiveParams();renderRegTable();renderScales();renderChart();
+  renderRegGrid();renderRegTable();renderScales();renderChart();
   refreshMantOptions&&refreshMantOptions();
   document.querySelectorAll('.sbtn').forEach(b=>{b.classList.remove('on');b.style.background='';});
   document.getElementById('asaBadge').innerHTML='';
@@ -2344,14 +2347,26 @@ function precargarFarmacos(){
 
 
 /* ════════════════════════════════════════════════════════════════════
-   PERSISTENCIA localStorage — SOMNUS Anestesiología
-   Guarda automáticamente cada cambio en el dispositivo.
-   Sobrevive a: cierre de navegador, pérdida de internet, reinicio app.
-   Clave de almacenamiento: "somnus_sesion_activa"
+   PERSISTENCIA MULTI-CAPA — SOMNUS Anestesiología
+   Capa 1: localStorage  → funciona en https:// (GitHub Pages, PWA)
+   Capa 2: sessionStorage → funciona en file:// mientras la pestaña esté abierta
+   Capa 3: memoria RAM   → último recurso
+   En file://: aviso automático + exportación JSON al cerrar página
    ════════════════════════════════════════════════════════════════════ */
 
-const LS_KEY = 'somnus_sesion_activa';
-const LS_VER = 1; // incrementar si cambia la estructura
+const LS_KEY  = 'somnus_sesion_activa';
+const LS_VER  = 1;
+const IS_FILE = (location.protocol === 'file:');
+
+/* Motor de almacenamiento: detectar qué está disponible */
+const STORAGE = (function(){
+  function test(s){ try{ s.setItem('__t','1'); s.removeItem('__t'); return true; }catch(e){ return false; } }
+  if(!IS_FILE && test(localStorage))  return localStorage;
+  if(test(sessionStorage))            return sessionStorage;
+  /* Fallback: objeto en memoria (dura solo mientras la pestaña está abierta) */
+  var mem = {};
+  return { setItem:function(k,v){mem[k]=v;}, getItem:function(k){return mem[k]||null;}, removeItem:function(k){delete mem[k];} };
+})();
 
 /* ── Serializar todo el estado actual ─────────────────────────────── */
 function estadoAJSON(){
@@ -2426,13 +2441,13 @@ function guardarSesion(inmediato){
     clearTimeout(_autoSaveTimer);
     const doSave = ()=>{
       const datos = JSON.stringify(estadoAJSON());
-      localStorage.setItem(LS_KEY, datos);
-      actualizarIndicadorGuardado('ok');
+      STORAGE.setItem(LS_KEY, datos);
+      actualizarIndicadorGuardado(IS_FILE ? 'file' : 'ok');
     };
     if(inmediato) doSave();
-    else _autoSaveTimer = setTimeout(doSave, 800); // debounce 800ms
+    else _autoSaveTimer = setTimeout(doSave, 800);
   } catch(e) {
-    console.warn('localStorage no disponible:', e);
+    console.warn('Error al guardar:', e);
     actualizarIndicadorGuardado('error');
   }
 }
@@ -2499,7 +2514,7 @@ function restaurarSesion(estado){
   document.getElementById('timer').textContent = fmt(timerSecs);
 
   /* Re-renderizar todo */
-  renderRegGrid(); renderLiveParams(); renderRegTable(); renderScales(); renderChart();
+  renderRegGrid();  renderRegTable(); renderScales(); renderChart();
   renderAjustesTabla();
   refreshMantOptions && refreshMantOptions();
   return true;
@@ -2508,7 +2523,7 @@ function restaurarSesion(estado){
 /* ── Cargar sesión al iniciar ──────────────────────────────────────── */
 function cargarSesionGuardada(){
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = STORAGE.getItem(LS_KEY);
     if(!raw) return false;
     const estado = JSON.parse(raw);
     const mins = Math.round((Date.now() - estado.ts) / 60000);
@@ -2525,7 +2540,7 @@ function cargarSesionGuardada(){
 
 /* ── Borrar sesión (al iniciar nuevo registro) ─────────────────────── */
 function borrarSesionGuardada(){
-  try { localStorage.removeItem(LS_KEY); } catch(e){}
+  try { STORAGE.removeItem(LS_KEY); } catch(e){}
   actualizarIndicadorGuardado('none');
 }
 
@@ -2579,6 +2594,11 @@ function actualizarIndicadorGuardado(estado){
     ind.style.color = 'var(--teal-d)';
     ind.style.opacity = '1';
     setTimeout(()=>{ if(ind)ind.style.opacity='0.4'; }, 2500);
+  } else if(estado==='file'){
+    ind.textContent = '✓ En sesión';
+    ind.style.color = 'var(--amber)';
+    ind.style.opacity = '1';
+    setTimeout(()=>{ if(ind)ind.style.opacity='0.5'; }, 2500);
   } else if(estado==='error'){
     ind.textContent = '⚠ Sin guardar';
     ind.style.color = 'var(--red)';
@@ -2711,7 +2731,7 @@ function initAjusteTimeInput(){
 }
 
 function init(){
-  renderRegGrid();renderLiveParams();renderRegTable();renderScales();renderChart();initDefaults();
+  renderRegGrid();renderRegTable();renderScales();renderChart();initDefaults();
   /* Intentar restaurar sesión guardada; si no hay, precargar fármacos */
   const restaurado = cargarSesionGuardada();
   if(!restaurado) precargarFarmacos();
@@ -2719,6 +2739,37 @@ function init(){
   refreshAjusteSelects();
   renderAjustesTabla();
   initAjusteTimeInput();
+
+  /* ── Aviso y protección para modo file:// ─────────────────────────
+     En file:// Safari iOS bloquea localStorage. Los datos duran solo
+     mientras la pestaña está abierta. Al cerrar → exportar JSON auto. */
+  if(IS_FILE){
+    /* Mostrar banner informativo */
+    var banner = document.getElementById('file-banner');
+    if(banner) banner.style.display = 'block';
+    /* Aviso discreto en el indicador */
+    const ind = document.getElementById('guardado-ind');
+    if(ind){
+      ind.textContent = '⚠ Modo local — usa el link para guardar';
+      ind.style.color = 'var(--amber)';
+      ind.style.opacity = '1';
+      ind.style.fontSize = '10px';
+      ind.title = 'Abre la app desde el link de GitHub Pages para que los datos persistan entre sesiones';
+      setTimeout(()=>{ ind.style.opacity='0.5'; ind.textContent='⚠ Modo local'; }, 5000);
+    }
+    /* Al intentar cerrar la pestaña: ofrecer exportar JSON */
+    window.addEventListener('beforeunload', function(e){
+      /* Solo si hay datos significativos */
+      var tieneData = registros.length > 0 ||
+        document.getElementById('f_paciente') && document.getElementById('f_paciente').value.trim() !== '';
+      if(tieneData){
+        /* Exportar JSON automáticamente antes de cerrar */
+        try { exportarBorradorJSON(); } catch(err){}
+        e.preventDefault();
+        e.returnValue = 'Hay datos sin guardar. Se descargará un borrador JSON automáticamente.';
+      }
+    });
+  }
   document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
 
   /* ── EVENT DELEGATION GLOBAL ──────────────────────────────────────────
@@ -2761,6 +2812,7 @@ function init(){
       case 'eliminarAjuste':   eliminarAjuste(parseInt(el.dataset.idx)); break;
       case 'exportarBorrador': exportarBorradorJSON(); break;
       case 'importarBorrador': importarBorradorJSON(); break;
+      case 'cerrarBanner': var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       default: console.warn('Unknown action:', action);
     }
   }, false);
@@ -2770,33 +2822,7 @@ function init(){
 }
 init();
 
-  /* ── REGISTRO SERVICE WORKER (PWA) ─────────────────────────────── */
-  if ('serviceWorker' in navigator) {
-    // SW inline como blob — funciona en file:// y https://
-    const swCode = `
-const CACHE = 'somnus-v1';
-self.addEventListener('install', e => {
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(clients.claim());
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
-});`;
-    try {
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-      navigator.serviceWorker.register(swUrl, { scope: '/' })
-        .then(() => console.log('SW registrado (PWA activa)'))
-        .catch(e => console.log('SW no disponible:', e));
-    } catch(e) {
-      console.log('SW blob no soportado:', e);
-    }
-  }
+  /* Service Worker eliminado — no compatible con blob:// en Safari */
 </script>
 
 </body>
