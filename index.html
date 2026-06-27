@@ -1441,7 +1441,10 @@ function getToggles(group){
 }
 
 /* ============ FÁRMACOS (con catálogos desplegables) ============ */
-function optList(arr,sel){return arr.map(x=>'<option'+(x===sel?' selected':'')+'>'+x+'</option>').join('');}
+function optList(arr,sel,noSort){
+  const sorted = noSort ? arr : [...arr].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  return sorted.map(x=>'<option'+(x===sel?' selected':'')+'>'+x+'</option>').join('');
+}
 
 function addDrug(section,preset){
   const map={mpa:'list-mpa',ind:'list-ind',mant:'list-mant',loco:'list-loco',postop:'list-postop',intraq:'list-intraq'};
@@ -1496,14 +1499,14 @@ function drugSelect(drugs,sel){
   return '<select data-f="farmaco"><option value="">Fármaco…</option>'+optList(drugs,sel)+'</select>';
 }
 function unitSelect(units,sel){
-  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(units,sel)+'</select>';
+  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(units,sel,true)+'</select>';
 }
 function blockSelect(sel){
-  return '<select data-f="bloqueo"><option value="">Bloqueo / sitio…</option>'+optList(BLOCK_CATALOG,sel)+'</select>';
+  return '<select data-f="bloqueo"><option value="">Bloqueo / sitio…</option>'+optList(BLOCK_CATALOG,sel,true)+'</select>';
 }
 function viaSelect(sel){
   const vias=['IM','IV','IV lento','SC','CRI','VO','Epidural','Intratecal','Tópica','Inhalatoria','Intraperitoneal','Local'];
-  return '<select data-f="via"><option value="">Vía…</option>'+optList(vias,sel)+'</select>';
+  return '<select data-f="via"><option value="">Vía…</option>'+optList(vias,sel,true)+'</select>';
 }
 function onDrugSelectChange(sel){
   const row=sel.closest('.drug-row');
@@ -1578,7 +1581,7 @@ function refreshMantOptions(){
   if(sel){
     const prev=sel.value;
     const mantDrugs=getDrugs('list-mant').map(d=>d.farmaco).filter((v,i,a)=>v&&a.indexOf(v)===i);
-    sel.innerHTML='<option value="">Fármaco en mantención…</option>'+optList(mantDrugs,prev);
+    sel.innerHTML='<option value="">Fármaco en mantención…</option>'+optList(mantDrugs,prev,true);
   }
   /* Sincronizar también el selector de ajustes de mantención */
   refreshAjusteSelects();
@@ -1783,7 +1786,9 @@ function renderChart(){
   const plotW=cssW-padL-padR, plotH=cssH-padT-padB;
 
   /* Eje X: tiempo en minutos */
+  /* Eje X: usar hora real del registro (HH:MM) como etiqueta */
   const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
+  const xLabels=pts.map(r=>r.time||'');
   const xMin=0, xMax=Math.max(...xs,10);
 
   /* Eje Y: rango dinámico entre todos los valores */
@@ -1826,11 +1831,16 @@ function renderChart(){
     ctx.strokeStyle='#e5ebe7'; ctx.lineWidth=0.5;
     ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke();
     ctx.fillStyle='#6b7670';
-    ctx.fillText(Math.round(xv)+"'",xx,padT+plotH+5);
+    /* Mostrar hora real si hay punto cercano, sino mostrar minutos */
+    const closest=pts.reduce((best,r,idx)=>{
+      const d=Math.abs(xs[idx]-xv); return d<best.d?{d,r}:best;
+    },{d:Infinity,r:null});
+    const lbl=closest.r&&closest.r.time?closest.r.time:Math.round(xv)+"'";
+    ctx.fillText(lbl,xx,padT+plotH+5);
   }
   /* Etiqueta eje X */
   ctx.textAlign='center'; ctx.fillStyle='#9aa39e'; ctx.font='10px -apple-system,Arial,sans-serif';
-  ctx.fillText('Tiempo (min)',padL+plotW/2,padT+plotH+22);
+  ctx.fillText('Hora de registro',padL+plotW/2,padT+plotH+22);
 
   /* Borde del plot */
   ctx.strokeStyle='#cdd5d1'; ctx.lineWidth=1;
@@ -1911,7 +1921,9 @@ function captureChartImage(){
     if(!active.length)return null;
     const padL=54,padR=20,padT=22,padB=46;
     const plotW=W-padL-padR,plotH=H-padT-padB;
-    const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
+    /* Eje X: usar hora real del registro (HH:MM) como etiqueta */
+  const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
+  const xLabels=pts.map(r=>r.time||'');
     const xMin=Math.min(...xs),xMax=Math.max(...xs,xMin+1);
     let yMax=0;active.forEach(s=>pts.forEach(r=>{const v=parseFloat(r.vals[s.key]);if(!isNaN(v)&&v>yMax)yMax=v;}));
     yMax=Math.ceil((yMax+5)/20)*20;if(yMax<60)yMax=60;
@@ -2044,7 +2056,7 @@ function exportPDFPortrait(){
   drugs('L','Mantenimiento',getDrugs('list-mant').map(drugLine));
   /* Ajustes intraoperatorios de mantención */
   if(ajustesMant && ajustesMant.length){
-    const ajLines=ajustesMant.map(a=>(a.t!=null?a.t+' min — ':'')+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
+    const ajLines=ajustesMant.map(a=>(a.time?a.time+' — ':(a.t!=null?a.t+' min — ':''))+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
     drugs('L','Ajustes de mantención',ajLines);
   }
   drugs('L','Intraquirúrgicas',getDrugs('list-intraq').map(drugLine));
@@ -2102,7 +2114,7 @@ function exportPDFPortrait(){
     registros.forEach((r,ri)=>{
       if(ri%2===1){doc.setFillColor(...zebra);doc.rect(Rx,y-2.4,colW,rowH,'F');}
       x=Rx;
-      doc.text(String(r.min),x+cols[0].w/2,y,{align:'center'});x+=cols[0].w;
+      doc.text(r.time||String(r.min),x+cols[0].w/2,y,{align:'center'});x+=cols[0].w;
       pCols.forEach((c)=>{const v=r.vals[c.key]||'—';doc.text(String(v),x+c.w/2,y,{align:'center'});x+=c.w;});
       y+=rowH;
     });
@@ -2114,7 +2126,7 @@ function exportPDFPortrait(){
       doc.text('Notas:',Rx,yR);yR+=3.2;
       doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(50,55,52);
       notas.forEach(r=>{
-        const parts=[r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
+        const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
         const ls=doc.splitTextToSize('• '+parts.join(' — '),colW-2);
         doc.text(ls,Rx+1,yR);yR+=ls.length*2.9;
       });
@@ -2252,7 +2264,7 @@ function exportPDFLandscape(){
   drugs(1,'Inducción',getDrugs('list-ind').map(drugLine));
   drugs(1,'Mantenimiento',getDrugs('list-mant').map(drugLine));
   if(ajustesMant && ajustesMant.length){
-    const ajLines=ajustesMant.map(a=>(a.t!=null?a.t+' min — ':'')+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
+    const ajLines=ajustesMant.map(a=>(a.time?a.time+' — ':(a.t!=null?a.t+' min — ':''))+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
     drugs(1,'Ajustes de mantención',ajLines);
   }
   drugs(1,'Intraquirúrgicas',getDrugs('list-intraq').map(drugLine));
@@ -2301,7 +2313,7 @@ function exportPDFLandscape(){
     registros.forEach((r,ri)=>{
       if(ri%2===1){doc.setFillColor(...zebra);doc.rect(x,y-2.5,cw,rowH,'F');}
       cx=x;
-      doc.text(String(r.min),cx+cols[0].w/2,y,{align:'center'});cx+=cols[0].w;
+      doc.text(r.time||String(r.min),cx+cols[0].w/2,y,{align:'center'});cx+=cols[0].w;
       pCols.forEach((c)=>{const v=r.vals[c.key]||'—';doc.text(String(v),cx+c.w/2,y,{align:'center'});cx+=c.w;});
       y+=rowH;
     });
@@ -2312,7 +2324,7 @@ function exportPDFLandscape(){
       doc.text('Notas:',x,yc[2]);yc[2]+=3.4;
       doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(50,55,52);
       notas.forEach(r=>{
-        const parts=[r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
+        const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
         const ls=doc.splitTextToSize('• '+parts.join(' — '),cw-2);
         doc.text(ls,x+1,yc[2]);yc[2]+=ls.length*3.1;
       });
@@ -2357,10 +2369,9 @@ function exportPDFLandscape(){
    COMPARTIR PDF — Web Share API (iOS/Android nativo) + fallback mail
    ════════════════════════════════════════════════════════════════════ */
 
-/* Genera el PDF y lo devuelve como {blob, fn} sin descargarlo */
+/* Genera el PDF y lo devuelve como {blob, dataUri, fn} sin descargarlo */
 async function generarPDFBlob(){
   const orient = document.getElementById('f_orient') ? document.getElementById('f_orient').value : 'portrait';
-  /* Llamar la función de exportación correspondiente */
   let resultado;
   try {
     resultado = orient === 'landscape' ? exportPDFLandscape() : exportPDFPortrait();
@@ -2369,7 +2380,15 @@ async function generarPDFBlob(){
     console.error(e);
     return null;
   }
-  return resultado; /* {blob, fn} */
+  return resultado; /* {blob, fn} — dataUri se genera bajo demanda */
+}
+
+/* Detectar Safari (incluyendo iOS Safari y Safari macOS) */
+function esSafari(){
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isSafariMac = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
+  return isIOS || isSafariMac;
 }
 
 /* Compartir con Web Share API — abre la hoja de compartir nativa del dispositivo */
@@ -2378,7 +2397,48 @@ async function compartirPDF(){
   if(!res) return;
   const { blob, fn } = res;
 
-  /* Web Share API nivel 2 (con archivos): iOS 15+, Android Chrome 75+ */
+  /* Safari (iOS/macOS): Web Share con archivos funciona en iOS 15+ via File object
+     pero requiere que el archivo sea creado antes de llamar share().
+     En Safari macOS y versiones antiguas de iOS, usar el modal de opciones. */
+  if(esSafari()){
+    /* Intentar Web Share con archivo en iOS 15+ */
+    const fileObj = new File([blob], fn, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[fileObj]})){
+      try{
+        await navigator.share({
+          title: 'Registro Anestésico SOMNUS',
+          text: 'Registro anestésico — '+(val('f_paciente')||'paciente')+' — '+(val('f_fecha')||''),
+          files: [fileObj]
+        });
+        toast('✓ PDF compartido');
+        return;
+      } catch(e){
+        if(e.name === 'AbortError') return;
+        /* Falló el share con archivo — usar modal */
+      }
+    }
+    /* Fallback Safari: abrir dataURI directamente (abre en visor PDF de Safari,
+       desde donde el usuario puede usar el botón nativo de compartir/guardar) */
+    const {jsPDF}=window.jspdf;
+    const orient=document.getElementById('f_orient')?document.getElementById('f_orient').value:'portrait';
+    const doc2=new jsPDF(orient==='landscape'?{orientation:'landscape',unit:'mm',format:'a4'}:{unit:'mm',format:'a4'});
+    /* Reutilizar el blob ya generado como dataUri */
+    const reader = new FileReader();
+    reader.onload = function(){
+      const a = document.createElement('a');
+      a.href = reader.result;
+      a.download = fn;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>document.body.removeChild(a), 300);
+      toast('📄 PDF abierto — usa el botón ↑ de Safari para compartir o guardar');
+    };
+    reader.readAsDataURL(blob);
+    return;
+  }
+
+  /* Chrome/Firefox/Edge: Web Share API nivel 2 con archivo */
   if(navigator.canShare && navigator.canShare({ files: [new File([blob], fn, {type:'application/pdf'})] })){
     try {
       await navigator.share({
@@ -2390,85 +2450,107 @@ async function compartirPDF(){
       return;
     } catch(e){
       if(e.name !== 'AbortError') console.warn('Share error:', e);
-      /* Si el usuario cancela (AbortError), no hacer nada más */
       if(e.name === 'AbortError') return;
     }
   }
 
-  /* Fallback: Web Share API nivel 1 (sin archivos, solo URL de datos) */
-  if(navigator.share){
-    try {
-      await navigator.share({
-        title: 'Registro Anestésico SOMNUS',
-        text: 'El PDF ha sido generado. Revisa tus Descargas y adjúntalo manualmente.'
-      });
-      return;
-    } catch(e){ if(e.name === 'AbortError') return; }
-  }
-
-  /* Fallback final: abrir hoja de opciones personalizada */
+  /* Fallback final: modal de opciones */
   mostrarOpcionesEnvio(blob, fn);
 }
 
-/* Enviar por correo — abre el cliente de mail con cuerpo predeterminado */
-/* Nota: los navegadores no permiten adjuntar archivos via mailto://  */
-/* Por eso primero descargamos el PDF y luego abrimos el mail */
+/* ── ENVIAR POR MAIL ───────────────────────────────────────────────────
+   Estrategia: generar PDF como archivo y compartirlo con Web Share API.
+   El usuario elige Mail en la hoja de compartir del sistema operativo.
+   El PDF llega adjunto directamente al correo.
+   En desktop (sin Web Share): descargar PDF + abrir mailto con asunto/cuerpo.
+   ────────────────────────────────────────────────────────────────────── */
 async function enviarPorMail(){
-  /* 1. Descargar el PDF en el dispositivo */
   const res = await generarPDFBlob();
   if(!res) return;
   const { blob, fn } = res;
 
-  /* Descargar el archivo */
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = fn; a.target = '_blank';
-  document.body.appendChild(a); a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
-
-  /* 2. Abrir cliente de correo con instrucciones */
   const paciente = val('f_paciente') || 'paciente';
   const fecha    = val('f_fecha')    || new Date().toISOString().slice(0,10);
-  const asunto   = encodeURIComponent('Registro Anestésico — ' + paciente + ' — ' + fecha);
-  const cuerpo   = encodeURIComponent(
-    'Estimado/a:\n\n' +
-    'Adjunto registro anestésico SOMNUS del paciente ' + paciente + ' con fecha ' + fecha + '.\n' +
-    'El archivo PDF se ha descargado en su dispositivo con el nombre:\n' + fn + '\n\n' +
-    'Por favor adjunte el archivo descargado a este correo.\n\n' +
+  const fileObj  = new File([blob], fn, {type:'application/pdf'});
+
+  /* ── iOS / iPadOS / macOS Safari ──────────────────────────────────
+     Web Share con archivo funciona en iOS 15+ (Safari 15+).
+     El usuario verá la hoja de compartir nativa y elige Mail → el PDF
+     llega adjunto automáticamente al nuevo correo. */
+  if(navigator.canShare && navigator.canShare({files:[fileObj]})){
+    try{
+      await navigator.share({
+        title: 'Registro Anestésico — ' + paciente,
+        text:  'Registro anestésico SOMNUS · ' + paciente + ' · ' + fecha,
+        files: [fileObj]
+      });
+      toast('✓ PDF listo para enviar');
+      return;
+    } catch(e){
+      if(e.name === 'AbortError') return; // usuario canceló
+      console.warn('Share falló, usando fallback:', e);
+    }
+  }
+
+  /* ── Android Chrome / navegadores modernos sin canShare ───────────
+     Intentar share sin canShare (algunos navegadores lo omiten) */
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title: 'Registro Anestésico — ' + paciente,
+        text:  'Registro anestésico SOMNUS · ' + paciente + ' · ' + fecha,
+        files: [fileObj]
+      });
+      toast('✓ PDF listo para enviar');
+      return;
+    } catch(e){
+      if(e.name === 'AbortError') return;
+    }
+  }
+
+  /* ── Desktop (PC/Mac) — sin Web Share API ─────────────────────────
+     Descargar PDF + abrir mailto con asunto y cuerpo pre-rellenado.
+     El usuario adjunta manualmente el PDF descargado. */
+  const asunto = encodeURIComponent('Registro Anestésico — ' + paciente + ' — ' + fecha);
+  const cuerpo = encodeURIComponent(
+    'Estimado/a,\n\n' +
+    'Adjunto el registro anestésico SOMNUS del paciente ' + paciente + ' con fecha ' + fecha + '.\n\n' +
     'Saludos,\nSOMNUS Anestesiología'
   );
-  setTimeout(()=>{ window.location.href = 'mailto:?subject=' + asunto + '&body=' + cuerpo; }, 400);
+
+  /* Descargar primero el PDF */
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fn;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  } catch(e){ console.warn('Descarga fallback:', e); }
+
+  /* Abrir cliente de correo */
+  setTimeout(()=>{ window.location.href = 'mailto:?subject=' + asunto + '&body=' + cuerpo; }, 600);
   toast('📧 PDF descargado — adjúntalo al correo que se abrirá');
 }
 
-/* Hoja de opciones cuando Web Share no está disponible (desktop) */
+/* Hoja de opciones para desktop cuando no hay Web Share */
 function mostrarOpcionesEnvio(blob, fn){
-  const url = URL.createObjectURL(blob);
   const modal = document.getElementById('modalBg');
-  modal.innerHTML =
-    '<div class="modal">' +
-    '<h3>Enviar PDF</h3>' +
-    '<p style="color:var(--muted);font-size:13px;margin-bottom:16px">El PDF ha sido generado. Elige cómo enviarlo:</p>' +
-    '<div style="display:flex;flex-direction:column;gap:10px">' +
-    '<a href="' + url + '" download="' + fn + '" class="btn btn-primary" style="text-align:center;text-decoration:none" ' +
-      'data-action="revokeObjectUrl" data-url="' + url + '">' +
-      '⬇ Descargar PDF</a>' +
-    '<button class="btn" data-action="cerrarModalYMail" data-fn="' + fn + '">' +
-      '📧 Descargar y abrir Mail</button>' +
-    '<button class="btn" data-action="closeModal">Cerrar</button>' +
-    '</div></div>';
-  modal.classList.add('show');
-  /* Guardar blob para uso posterior */
-  window._pdfBlobPendiente = { blob, fn };
-}
-
-async function cerrarModalYMail(){
-  closeModal();
-  if(window._pdfBlobPendiente){
-    const { fn } = window._pdfBlobPendiente;
-    window._pdfBlobPendiente = null;
-    await enviarPorMail();
-  }
+  const reader = new FileReader();
+  reader.onload = function(){
+    const dataUri = reader.result;
+    modal.innerHTML =
+      '<div class="modal">' +
+      '<h3 style="margin-bottom:10px">Enviar PDF por correo</h3>' +
+      '<p style="color:var(--muted);font-size:13px;margin-bottom:16px">' +
+        'Descarga el PDF y adjúntalo a tu correo.' +
+      '</p>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+      '<a href="' + dataUri + '" download="' + fn + '" class="btn btn-primary" style="text-align:center;text-decoration:none">⬇ Descargar PDF</a>' +
+      '<button class="btn" data-action="closeModal">Cerrar</button>' +
+      '</div></div>';
+    modal.classList.add('show');
+  };
+  reader.readAsDataURL(blob);
 }
 
 /* ============ INIT ============ */
@@ -2778,10 +2860,26 @@ function refreshAjusteSelects(){
   const selUnit = document.getElementById('aj_unidad');
   if(!selFarm || !selUnit) return;
 
-  /* Fármacos: tomar de list-mant + catálogo de mantención */
+  /* Catálogo completo para ajustes — todos los fármacos modificables en mantención */
+  const AJUSTE_CATALOG = [
+    /* Inhalatorios */
+    'Isoflurano','Sevoflurano',
+    /* TIVA / CRI */
+    'Propofol','Ketamina','Fentanilo','Remifentanilo','Lidocaína',
+    'Dexmedetomidina','Midazolam','Morfina','Sulfato de magnesio',
+    /* Vasoactivos */
+    'Dobutamina','Dopamina','Noradrenalina','Adrenalina','Efedrina','Vasopresina',
+    /* Analgesia */
+    'Metadona','Butorfanol','Buprenorfina','Tramadol','Dipirona',
+    /* Otros */
+    'Atropina','Glicopirrolato','Dexametasona','Furosemida',
+    'Gluconato de calcio','Bicarbonato de sodio','Sulfato de magnesio',
+    'Otro'
+  ];
+  /* Primero mostrar los cargados en mantención (orden de uso), luego el resto */
   const mantDrugs = getDrugs('list-mant').map(d=>d.farmaco).filter((v,i,a)=>v&&a.indexOf(v)===i);
-  /* Si no hay fármacos cargados en mantención, mostrar catálogo completo */
-  const allMant = mantDrugs.length ? mantDrugs : DRUG_CATALOG.mant;
+  const extras = AJUSTE_CATALOG.filter(f=>!mantDrugs.includes(f));
+  const allMant = mantDrugs.length ? [...mantDrugs, ...extras] : AJUSTE_CATALOG;
   const prevFarm = selFarm.value;
   selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' +
     allMant.map(f=>'<option'+(f===prevFarm?' selected':'')+'>'+f+'</option>').join('');
@@ -2807,11 +2905,20 @@ function registrarAjuste(){
   const unidad  = (document.getElementById('aj_unidad')||{}).value || '';
   const motivo  = (document.getElementById('aj_motivo')||{}).value || '';
 
-  if(!farmaco){ toast('Selecciona un fármaco'); return; }
+  /* Si "Otro", tomar el texto del input libre */
+  const ajFarmacoOtro = document.getElementById('aj_farmaco_otro');
+  const farmacoFinal = (farmaco === 'Otro' && ajFarmacoOtro) ? (ajFarmacoOtro.value.trim()||'Otro') : farmaco;
+  if(!farmacoFinal){ toast('Selecciona un fármaco'); return; }
   if(dosis === ''){ toast('Ingresa la dosis nueva'); return; }
 
   const t = tiempoActualMin();
-  const ajuste = { t, farmaco, dosis, unidad, motivo };
+  /* Capturar la hora real del reloj para mostrarlo en PDF y tabla */
+  const now = new Date();
+  const timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  /* Si el usuario modificó el campo tiempo manualmente, no usar hora actual */
+  const tEl2 = document.getElementById('aj_tiempo');
+  const horaAjuste = (tEl2 && tEl2.value !== '') ? null : timeStr;
+  const ajuste = { t, time: horaAjuste, farmaco:farmacoFinal, dosis, unidad, motivo };
   ajustesMant.push(ajuste);
 
   /* Limpiar campos de dosis y motivo (mantener fármaco y unidad para facilitar varios ajustes seguidos) */
@@ -2848,7 +2955,7 @@ function renderAjustesTabla(){
   if(empty) empty.style.display = 'none';
 
   tbody.innerHTML = ajustesMant.map((a,i)=>{
-    const tStr  = a.t != null ? a.t + " min" : '—';
+    const tStr  = a.time ? a.time : (a.t != null ? a.t + " min" : '—');
     const trBg  = i%2===0 ? '' : 'background:var(--surf)';
     return '<tr style="'+trBg+'">' +
       '<td style="padding:6px 8px;color:var(--teal-d);font-weight:600;white-space:nowrap">'+tStr+'</td>' +
@@ -2880,6 +2987,21 @@ function init(){
   refreshAjusteSelects();
   renderAjustesTabla();
   initAjusteTimeInput();
+  /* Listener para Otro en ajuste de fármaco */
+  const ajFarSel = document.getElementById('aj_farmaco');
+  if(ajFarSel) ajFarSel.addEventListener('change', function(){
+    let inp = document.getElementById('aj_farmaco_otro');
+    if(this.value === 'Otro'){
+      if(!inp){
+        inp = document.createElement('input');
+        inp.id = 'aj_farmaco_otro';
+        inp.placeholder = 'Especificar fármaco…';
+        inp.style.cssText = 'font-size:15px;margin-top:6px;width:100%';
+        this.parentElement.appendChild(inp);
+        inp.focus();
+      }
+    } else if(inp){ inp.remove(); }
+  });
 
   /* ── Aviso y protección para modo file:// ─────────────────────────
      En file:// Safari iOS bloquea localStorage. Los datos duran solo
@@ -2956,7 +3078,7 @@ function init(){
       case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       case 'compartirPDF':    compartirPDF(); break;
       case 'enviarPorMail':   enviarPorMail(); break;
-      case 'cerrarModalYMail': cerrarModalYMail(); break;
+
       case 'revokeObjectUrl':  setTimeout(()=>{ try{ URL.revokeObjectURL(el.dataset.url); }catch(e){} },1000); break;
       default: console.warn('Unknown action:', action);
     }
