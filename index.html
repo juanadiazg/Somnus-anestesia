@@ -709,9 +709,19 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
       <span class="card-title">Gráfico de tendencias</span>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
       <button class="btn btn-sm" id="btn-induccion" data-action="markInduction">Inducción</button>
+      <span id="ind-edit" style="display:none;align-items:center;gap:5px;font-size:13px;background:var(--surf);padding:3px 8px;border-radius:6px">
+        <span style="color:#3B6D11;font-weight:600">Inducción</span>
+        <input type="time" id="ind-time" data-action="editInductionTime" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:13px;font-family:inherit">
+        <button data-action="clearInduction" title="Quitar inducción" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>
+      </span>
       <button class="btn btn-sm" id="btn-extubacion" data-action="markExtubation">Extubación</button>
+      <span id="ext-edit" style="display:none;align-items:center;gap:5px;font-size:13px;background:var(--surf);padding:3px 8px;border-radius:6px">
+        <span style="color:#A32D2D;font-weight:600">Extubación</span>
+        <input type="time" id="ext-time" data-action="editExtubationTime" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:13px;font-family:inherit">
+        <button data-action="clearExtubation" title="Quitar extubación" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>
+      </span>
       <button class="btn btn-sm" data-action="openChartNote">&#x1F4DD; Agregar nota</button>
     </div>
     <div style="overflow-x:auto"><canvas id="trendChart" height="340" style="width:100%;min-width:520px"></canvas></div>
@@ -1762,6 +1772,11 @@ function playAlarm(type){
 }
 
 /* ============ GRÁFICO DE TENDENCIAS (canvas nativo) ============ */
+/* "HH:MM" → minutos del día; null si no es una hora válida */
+function chartClockMin(s){
+  if(typeof s==='string'){const m=s.match(/^(\d{1,2}):(\d{2})$/);if(m)return (+m[1])*60+(+m[2]);}
+  return null;
+}
 const CHART_SERIES=[
   {key:'fc',    label:'FC',    color:'#A32D2D', sym:'triangle'},
   {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'circle'},
@@ -1794,16 +1809,12 @@ function renderChart(){
 
   /* Eje X: posición según la hora real de registro (HH:MM) de la tabla.
      Fallback al cronómetro (t) o al índice si la hora no es válida. */
-  function clockMin(s){
-    if(typeof s==='string'){const m=s.match(/^(\d{1,2}):(\d{2})$/);if(m)return (+m[1])*60+(+m[2]);}
-    return null;
-  }
   function evX(o){
     if(!o)return null;
-    const c=clockMin(o.time); if(c!=null)return c;
+    const c=chartClockMin(o.time); if(c!=null)return c;
     return o.t!=null?o.t/60:null;
   }
-  const xs=pts.map((r,i)=>{const c=clockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
+  const xs=pts.map((r,i)=>{const c=chartClockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
   const indX=evX(inductionMarker), extX=evX(extubationMarker);
   const noteX=chartNotes.map(evX);
   const allTimeVals=[...xs,indX,extX,...noteX].filter(v=>v!=null);
@@ -2020,26 +2031,35 @@ function renderChart(){
 window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extubationMarker||chartNotes.length)renderChart();});
 
 /* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
+/* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
+function refreshMarkerUI(){
+  const bi=document.getElementById('btn-induccion'),ie=document.getElementById('ind-edit'),it=document.getElementById('ind-time');
+  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;}
+  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';}
+  const be=document.getElementById('btn-extubacion'),ee=document.getElementById('ext-edit'),et=document.getElementById('ext-time');
+  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;}
+  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';}
+}
 function markInduction(){
-  if(inductionMarker){toast('La inducción ya fue marcada · '+inductionMarker.time);return;}
+  if(inductionMarker)return;
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
   inductionMarker={t:timerSecs,time};
-  const btn=document.getElementById('btn-induccion');
-  if(btn){btn.textContent='✓ Inducción · '+time;btn.disabled=true;}
-  guardarSesion(true);renderChart();
+  refreshMarkerUI();guardarSesion(true);renderChart();
   toast('Inicio de inducción marcado · '+time);
 }
 function markExtubation(){
-  if(extubationMarker){toast('La extubación ya fue marcada · '+extubationMarker.time);return;}
+  if(extubationMarker)return;
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
   extubationMarker={t:timerSecs,time};
-  const btn=document.getElementById('btn-extubacion');
-  if(btn){btn.textContent='✓ Extubación · '+time;btn.disabled=true;}
-  guardarSesion(true);renderChart();
+  refreshMarkerUI();guardarSesion(true);renderChart();
   toast('Extubación marcada · '+time);
 }
+function editInductionTime(v){if(inductionMarker&&v){inductionMarker.time=v;renderChart();guardarSesion(true);}}
+function editExtubationTime(v){if(extubationMarker&&v){extubationMarker.time=v;renderChart();guardarSesion(true);}}
+function clearInduction(){inductionMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Inducción eliminada');}
+function clearExtubation(){extubationMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Extubación eliminada');}
 function openChartNote(){
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
@@ -2047,8 +2067,9 @@ function openChartNote(){
   document.getElementById('modalBg').innerHTML=
     '<div class="modal">'+
     '<h3>Nota intraquirúrgica</h3>'+
-    '<p style="font-size:13px;color:var(--muted);margin-bottom:10px">Tiempo: '+time+' · Min '+Math.floor(t/60)+'</p>'+
-    '<div class="field"><label>Nota</label>'+
+    '<div class="field"><label>Hora</label>'+
+    '<input type="time" id="chart-note-time" value="'+time+'" style="font-family:inherit"></div>'+
+    '<div class="field" style="margin-top:10px"><label>Nota</label>'+
     '<textarea id="chart-note-text" placeholder="Ej: inicio cirugía, bolo rescate, evento..." rows="3" style="width:100%;resize:vertical"></textarea>'+
     '</div>'+
     '<div class="modal-actions">'+
@@ -2062,9 +2083,11 @@ function confirmChartNote(btn){
   const textEl=document.getElementById('chart-note-text');
   const text=(textEl?textEl.value:'').trim();
   if(!text){toast('Escribe una nota');return;}
+  const timeEl=document.getElementById('chart-note-time');
+  const time=(timeEl&&timeEl.value)?timeEl.value:btn.dataset.time;
   const t=parseInt(btn.dataset.t);
-  const time=btn.dataset.time;
-  const existing=chartNotes.find(n=>n.t===t);
+  /* Agrupar por hora (HH:MM): máx. 2 notas; la 3ª se concatena a la 2ª */
+  const existing=chartNotes.find(n=>n.time===time);
   if(existing){
     if(existing.notes.length<2){existing.notes.push(text);}
     else{existing.notes[1]+=' / '+text;}
@@ -2074,20 +2097,31 @@ function confirmChartNote(btn){
   closeModal();guardarSesion(true);renderChart();renderChartNotes();
   toast('Nota guardada · '+time);
 }
+function editChartNoteTime(idx,v){
+  if(idx>=0&&idx<chartNotes.length&&v){chartNotes[idx].time=v;renderChart();renderChartNotes();guardarSesion(true);}
+}
+function delChartNote(idx){
+  if(idx>=0&&idx<chartNotes.length){chartNotes.splice(idx,1);renderChart();renderChartNotes();guardarSesion(true);toast('Nota eliminada');}
+}
 function renderChartNotes(){
   const section=document.getElementById('chartNotesSection');
   const list=document.getElementById('chartNotesList');
   if(!section||!list)return;
-  if(!chartNotes.length){section.style.display='none';return;}
+  if(!chartNotes.length){section.style.display='none';list.innerHTML='';return;}
   section.style.display='block';
-  list.innerHTML=chartNotes
-    .slice().sort((a,b)=>a.t-b.t)
-    .map(n=>n.notes.map(txt=>
-      '<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--line-soft)">'+
-      '<span style="font-size:12px;font-weight:600;color:var(--teal-d);white-space:nowrap;min-width:40px">'+n.time+'</span>'+
-      '<span style="font-size:13px;color:var(--ink)">'+txt+'</span>'+
-      '</div>'
-    ).join('')).join('');
+  const ordered=chartNotes.slice().sort((a,b)=>{
+    const ca=chartClockMin(a.time),cb=chartClockMin(b.time);
+    return (ca==null?0:ca)-(cb==null?0:cb);
+  });
+  list.innerHTML=ordered.map(n=>{
+    const idx=chartNotes.indexOf(n);
+    return '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line-soft)">'+
+      '<input type="time" value="'+n.time+'" data-action="editChartNoteTime" data-idx="'+idx+'" '+
+        'style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:12px;font-weight:600;color:var(--teal-d);font-family:inherit;width:88px;flex-shrink:0">'+
+      '<span style="flex:1;font-size:13px;color:var(--ink)">'+n.notes.join('<br>')+'</span>'+
+      '<button data-action="delChartNote" data-idx="'+idx+'" title="Quitar nota" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;flex-shrink:0">✕</button>'+
+      '</div>';
+  }).join('');
 }
 
 /* ============ ESCALAS RECUPERACIÓN ============ */
@@ -2118,10 +2152,7 @@ function nuevoRegistro(){
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
   inductionMarker=null;extubationMarker=null;chartNotes=[];
-  const btnInd=document.getElementById('btn-induccion');
-  if(btnInd){btnInd.textContent='Inicio inducción';btnInd.disabled=false;}
-  const btnExt=document.getElementById('btn-extubacion');
-  if(btnExt){btnExt.textContent='Extubación';btnExt.disabled=false;}
+  refreshMarkerUI();
   params=params.filter(p=>p.fixed);
   renderRegGrid();renderRegTable();renderScales();renderChart();renderChartNotes();
   refreshMantOptions&&refreshMantOptions();
@@ -2969,10 +3000,7 @@ function restaurarSesion(estado){
   extubationMarker = estado.extubationMarker || null;
   chartNotes       = estado.chartNotes       || [];
   document.getElementById('timer').textContent = fmt(timerSecs);
-  const btnInd=document.getElementById('btn-induccion');
-  if(btnInd&&inductionMarker){btnInd.textContent='✓ Inducción · '+inductionMarker.time;btnInd.disabled=true;}
-  const btnExt=document.getElementById('btn-extubacion');
-  if(btnExt&&extubationMarker){btnExt.textContent='✓ Extubación · '+extubationMarker.time;btnExt.disabled=true;}
+  refreshMarkerUI();
 
   /* Re-renderizar todo */
   renderRegGrid();  renderRegTable(); renderScales(); renderChart(); renderChartNotes();
@@ -3075,10 +3103,11 @@ function activarAutoGuardado(){
   document.addEventListener('change', function(e){
     /* Edición de hora en tabla de registros */
     var el = e.target;
-    if(el && el.dataset && el.dataset.action === 'editRegTime'){
-      editRegTime(parseInt(el.dataset.idx), el.value);
-      return;
-    }
+    var act = el && el.dataset && el.dataset.action;
+    if(act === 'editRegTime'){ editRegTime(parseInt(el.dataset.idx), el.value); return; }
+    if(act === 'editInductionTime'){ editInductionTime(el.value); return; }
+    if(act === 'editExtubationTime'){ editExtubationTime(el.value); return; }
+    if(act === 'editChartNoteTime'){ editChartNoteTime(parseInt(el.dataset.idx), el.value); return; }
     guardarSesion(false);
   }, true);
   // Guardar también cuando se registra un parámetro intraoperatorio
@@ -3318,8 +3347,11 @@ function init(){
       case 'enviarPorMail':   enviarPorMail(); break;
       case 'markInduction':   markInduction(); break;
       case 'markExtubation':  markExtubation(); break;
+      case 'clearInduction':  clearInduction(); break;
+      case 'clearExtubation': clearExtubation(); break;
       case 'openChartNote':   openChartNote(); break;
       case 'confirmChartNote': confirmChartNote(el); break;
+      case 'delChartNote':    delChartNote(parseInt(el.dataset.idx)); break;
 
       case 'revokeObjectUrl':  setTimeout(()=>{ try{ URL.revokeObjectURL(el.dataset.url); }catch(e){} },1000); break;
       default: console.warn('Unknown action:', action);

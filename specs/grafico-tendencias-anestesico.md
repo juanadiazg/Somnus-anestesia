@@ -11,9 +11,11 @@ Mejorar el gráfico de tendencias de la app de registro anestésico para que mue
 - El gráfico muestra CO₂ como círculo verde sólido.
 - Los parámetros no se conectan con líneas de tendencia entre puntos de tiempo; cada valor se dibuja solo como su símbolo (la única línea es la vertical azul que une PAs/PAd/PAm dentro del mismo punto de tiempo).
 - Leyenda a la derecha del gráfico que identifica cada símbolo: PAs, PAd, PAm, FC, CO₂, Nota, Inducción, Extubación.
-- Botón "Inducción": al presionarlo registra el tiempo actual y muestra una etiqueta de texto vertical en el eje X del gráfico en esa columna de tiempo.
-- Botón "Extubación": al presionarlo registra el tiempo actual y muestra una etiqueta de texto vertical en el eje X del gráfico en esa columna de tiempo.
-- Botón "Agregar nota": abre un campo de texto libre donde el usuario escribe la nota intraquirúrgica y la asocia al punto de tiempo actual.
+- Botón "Inducción": al presionarlo registra el tiempo actual y muestra una etiqueta de texto vertical en el eje X del gráfico en esa columna de tiempo. La hora queda editable mediante un campo de hora, y puede quitarse.
+- Botón "Extubación": al presionarlo registra el tiempo actual y muestra una etiqueta de texto vertical en el eje X del gráfico en esa columna de tiempo. La hora queda editable mediante un campo de hora, y puede quitarse.
+- Botón "Agregar nota": abre un campo de texto libre y un campo de hora (por defecto la hora actual, editable) donde el usuario escribe la nota intraquirúrgica y la asocia a ese punto de tiempo.
+- La posición de registros, marcadores (inducción/extubación) y notas en el eje X se determina por su hora HH:MM; al editar cualquier hora, el gráfico se reposiciona.
+- En la lista de notas, cada nota tiene su hora editable y puede eliminarse.
 - Cada nota registrada muestra un ícono de nota (📝 o equivalente) en el gráfico en la columna de tiempo correspondiente.
 - Todas las notas aparecen en una sección separada debajo del gráfico, listadas con su tiempo y texto.
 - Máximo 2 notas distintas por punto de tiempo. Si se intenta agregar una tercera en el mismo punto, el texto se concatena (append) a la segunda nota existente en ese tiempo.
@@ -36,8 +38,9 @@ Mejorar el gráfico de tendencias de la app de registro anestésico para que mue
 - [ ] FC aparece como triángulo rojo y CO₂ como círculo verde en el gráfico.
 - [ ] No hay líneas de tendencia que unan los parámetros entre puntos de tiempo (solo la línea vertical azul de PA dentro de cada punto).
 - [ ] La leyenda a la derecha del gráfico identifica los símbolos PAs, PAd, PAm, FC, CO₂, Nota, Inducción, Extubación (sin Anest., Proc. ni Evnt.).
-- [ ] Al presionar "Inducción", aparece una etiqueta de texto en la columna de tiempo correspondiente del gráfico.
-- [ ] Al presionar "Extubación", aparece una etiqueta de texto en la columna de tiempo correspondiente del gráfico.
+- [ ] Al presionar "Inducción", aparece una etiqueta de texto en la columna de tiempo correspondiente del gráfico, con su hora editable y opción de quitarla.
+- [ ] Al presionar "Extubación", aparece una etiqueta de texto en la columna de tiempo correspondiente del gráfico, con su hora editable y opción de quitarla.
+- [ ] El diálogo de nota incluye un campo de hora editable; en la lista de notas cada nota tiene hora editable y puede eliminarse; al cambiar cualquier hora el gráfico se reposiciona.
 - [ ] Presionar dos veces el mismo botón (inducción o extubación) no duplica el marcador.
 - [ ] Al agregar una nota, el ícono de nota aparece en el gráfico en el punto de tiempo correcto.
 - [ ] Las notas aparecen listadas en la sección separada debajo del gráfico con tiempo y texto.
