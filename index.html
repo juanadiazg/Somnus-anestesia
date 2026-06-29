@@ -1642,15 +1642,22 @@ function renderRegTable(){
   if(registros.length===0){
     body.innerHTML='<tr><td colspan="'+(params.length+5)+'" style="text-align:center;color:var(--muted);padding:18px">Sin registros aún. Inicia el cronómetro y pulsa "Registrar ahora".</td></tr>';
   }else{
+    const planoOpts=['Superficial','Quirúrgico ligero','Quirúrgico medio','Quirúrgico profundo'];
+    const valStyle='border:1px solid var(--line);border-radius:4px;width:58px;padding:3px 4px;font-size:12px;text-align:center;font-family:inherit';
     body.innerHTML=registros.map((r,i)=>
       '<tr>'+
-      '<td><input type="time" value="'+r.time+'" data-action="editRegTime" data-idx="'+i+'" '+
+      '<td><input type="time" value="'+(r.time||'')+'" data-action="editRegTime" data-idx="'+i+'" '+
         'style="border:none;background:transparent;font-size:13px;color:var(--teal-d);font-weight:600;'+
         'width:72px;padding:2px;cursor:pointer;font-family:inherit"></td>'+
       '<td>'+r.min+'</td>'+
-      params.map(p=>'<td>'+(r.vals[p.key]||'—')+'</td>').join('')+
-      '<td style="font-size:12px">'+(r.plano||'—')+'</td>'+
-      '<td class="note-cell" title="'+(r.nota||'')+'">'+(r.nota||'')+'</td>'+
+      params.map(p=>'<td><input type="number" step="any" value="'+(r.vals[p.key]!=null?r.vals[p.key]:'')+'" '+
+        'data-action="editRegVal" data-idx="'+i+'" data-key="'+p.key+'" placeholder="—" style="'+valStyle+'"></td>').join('')+
+      '<td><select data-action="editRegPlano" data-idx="'+i+'" style="border:1px solid var(--line);border-radius:4px;padding:3px 4px;font-size:12px;font-family:inherit">'+
+        '<option value=""'+(r.plano?'':' selected')+'>—</option>'+
+        planoOpts.map(o=>'<option'+(o===r.plano?' selected':'')+'>'+o+'</option>').join('')+
+      '</select></td>'+
+      '<td><input type="text" value="'+(r.nota?String(r.nota).replace(/"/g,'&quot;'):'')+'" data-action="editRegNota" data-idx="'+i+'" placeholder="—" '+
+        'style="border:1px solid var(--line);border-radius:4px;width:130px;padding:3px 4px;font-size:12px;font-family:inherit"></td>'+
       '<td><button class="del-row" data-action="delReg" data-idx="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td></tr>'
     ).join('');
   }
@@ -1746,6 +1753,19 @@ function editRegTime(idx, val){
     renderChart();
     guardarSesion(true);
   }
+}
+function editRegVal(idx, key, value){
+  if(idx<0||idx>=registros.length)return;
+  if(!registros[idx].vals)registros[idx].vals={};
+  registros[idx].vals[key]=(value||'').trim();
+  renderChart();
+  guardarSesion(true);
+}
+function editRegPlano(idx, value){
+  if(idx>=0&&idx<registros.length){registros[idx].plano=value;guardarSesion(true);}
+}
+function editRegNota(idx, value){
+  if(idx>=0&&idx<registros.length){registros[idx].nota=value;guardarSesion(true);}
 }
 
 /* ============ ALARMA SONORA (WebAudio, sin archivos) ============ */
@@ -2723,6 +2743,38 @@ async function compartirPDF(){
    El PDF llega adjunto directamente al correo.
    En desktop (sin Web Share): descargar PDF + abrir mailto con asunto/cuerpo.
    ────────────────────────────────────────────────────────────────────── */
+/* Construye el cuerpo del correo con los datos generales del registro */
+function datosGeneralesMail(){
+  const L=[];
+  L.push('REGISTRO ANESTÉSICO — SOMNUS');
+  L.push('');
+  const clinica=val('f_clinica'), ciudad=val('f_ciudad');
+  if(clinica||ciudad) L.push('Clínica: '+[clinica,ciudad].filter(Boolean).join(', '));
+  if(val('f_fecha')) L.push('Fecha: '+val('f_fecha'));
+  if(val('f_procedimiento')) L.push('Procedimiento: '+val('f_procedimiento'));
+  L.push('');
+  if(val('f_paciente'))   L.push('Paciente: '+val('f_paciente'));
+  if(val('f_propietario'))L.push('Propietario: '+val('f_propietario'));
+  const esp=val('f_especie'), raza=val('f_raza'), sexo=val('f_sexo');
+  if(esp||raza||sexo) L.push('Especie / Raza / Sexo: '+[esp,raza,sexo].filter(Boolean).join(' · '));
+  if(val('f_edad')) L.push('Edad: '+val('f_edad'));
+  if(val('f_peso')) L.push('Peso: '+val('f_peso')+' kg');
+  if(val('f_asa'))  L.push('ASA: '+val('f_asa'));
+  L.push('');
+  if(val('f_anestesista')) L.push('Anestesista: '+val('f_anestesista'));
+  if(val('f_cirujano'))    L.push('Cirujano: '+val('f_cirujano'));
+  const hi=val('f_hora_inicio'), hf=val('f_hora_fin');
+  if(hi||hf) L.push('Horario: '+[hi,hf].filter(Boolean).join(' – '));
+  L.push('');
+  L.push('Se adjunta el PDF con el registro anestésico completo.');
+  L.push('');
+  L.push('— SOMNUS Anestesiología');
+  return L.join('\n');
+}
+
+/* ENVIAR POR MAIL: abre el cliente de correo con asunto y datos generales
+   del registro, y descarga el PDF para adjuntarlo. (Distinto de "Compartir",
+   que usa la hoja de compartir nativa con el archivo.) */
 async function enviarPorMail(){
   const res = await generarPDFBlob();
   if(!res) return;
@@ -2730,54 +2782,10 @@ async function enviarPorMail(){
 
   const paciente = val('f_paciente') || 'paciente';
   const fecha    = val('f_fecha')    || new Date().toISOString().slice(0,10);
-  const fileObj  = new File([blob], fn, {type:'application/pdf'});
+  const asunto   = encodeURIComponent('Registro Anestésico — ' + paciente + ' — ' + fecha);
+  const cuerpo   = encodeURIComponent(datosGeneralesMail());
 
-  /* ── iOS / iPadOS / macOS Safari ──────────────────────────────────
-     Web Share con archivo funciona en iOS 15+ (Safari 15+).
-     El usuario verá la hoja de compartir nativa y elige Mail → el PDF
-     llega adjunto automáticamente al nuevo correo. */
-  if(navigator.canShare && navigator.canShare({files:[fileObj]})){
-    try{
-      await navigator.share({
-        title: 'Registro Anestésico — ' + paciente,
-        text:  'Registro anestésico SOMNUS · ' + paciente + ' · ' + fecha,
-        files: [fileObj]
-      });
-      toast('✓ PDF listo para enviar');
-      return;
-    } catch(e){
-      if(e.name === 'AbortError') return; // usuario canceló
-      console.warn('Share falló, usando fallback:', e);
-    }
-  }
-
-  /* ── Android Chrome / navegadores modernos sin canShare ───────────
-     Intentar share sin canShare (algunos navegadores lo omiten) */
-  if(navigator.share){
-    try{
-      await navigator.share({
-        title: 'Registro Anestésico — ' + paciente,
-        text:  'Registro anestésico SOMNUS · ' + paciente + ' · ' + fecha,
-        files: [fileObj]
-      });
-      toast('✓ PDF listo para enviar');
-      return;
-    } catch(e){
-      if(e.name === 'AbortError') return;
-    }
-  }
-
-  /* ── Desktop (PC/Mac) — sin Web Share API ─────────────────────────
-     Descargar PDF + abrir mailto con asunto y cuerpo pre-rellenado.
-     El usuario adjunta manualmente el PDF descargado. */
-  const asunto = encodeURIComponent('Registro Anestésico — ' + paciente + ' — ' + fecha);
-  const cuerpo = encodeURIComponent(
-    'Estimado/a,\n\n' +
-    'Adjunto el registro anestésico SOMNUS del paciente ' + paciente + ' con fecha ' + fecha + '.\n\n' +
-    'Saludos,\nSOMNUS Anestesiología'
-  );
-
-  /* Descargar primero el PDF */
+  /* Descargar el PDF para que el usuario lo adjunte */
   try{
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2786,9 +2794,9 @@ async function enviarPorMail(){
     setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
   } catch(e){ console.warn('Descarga fallback:', e); }
 
-  /* Abrir cliente de correo */
+  /* Abrir el cliente de correo con asunto y datos generales */
   setTimeout(()=>{ window.location.href = 'mailto:?subject=' + asunto + '&body=' + cuerpo; }, 600);
-  toast('📧 PDF descargado — adjúntalo al correo que se abrirá');
+  toast('📧 Correo abierto con asunto y datos · adjunta el PDF descargado');
 }
 
 /* Hoja de opciones para desktop cuando no hay Web Share */
@@ -3105,6 +3113,9 @@ function activarAutoGuardado(){
     var el = e.target;
     var act = el && el.dataset && el.dataset.action;
     if(act === 'editRegTime'){ editRegTime(parseInt(el.dataset.idx), el.value); return; }
+    if(act === 'editRegVal'){ editRegVal(parseInt(el.dataset.idx), el.dataset.key, el.value); return; }
+    if(act === 'editRegPlano'){ editRegPlano(parseInt(el.dataset.idx), el.value); return; }
+    if(act === 'editRegNota'){ editRegNota(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editInductionTime'){ editInductionTime(el.value); return; }
     if(act === 'editExtubationTime'){ editExtubationTime(el.value); return; }
     if(act === 'editChartNoteTime'){ editChartNoteTime(parseInt(el.dataset.idx), el.value); return; }
