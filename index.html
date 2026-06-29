@@ -708,10 +708,18 @@ input[type=date],select,textarea{
     <div class="card-head">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
       <span class="card-title">Gráfico de tendencias</span>
-      <div id="chartLegend" style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px"></div>
     </div>
-    <div style="overflow-x:auto"><canvas id="trendChart" height="280" style="width:100%;min-width:480px"></canvas></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn btn-sm" id="btn-induccion" data-action="markInduction">Inducción</button>
+      <button class="btn btn-sm" id="btn-extubacion" data-action="markExtubation">Extubación</button>
+      <button class="btn btn-sm" data-action="openChartNote">&#x1F4DD; Agregar nota</button>
+    </div>
+    <div style="overflow-x:auto"><canvas id="trendChart" height="340" style="width:100%;min-width:520px"></canvas></div>
     <p class="hint" id="chartEmpty" style="text-align:center;padding:20px">El gráfico se construye automáticamente con cada registro de parámetros.</p>
+    <div id="chartNotesSection" style="display:none;margin-top:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Notas intraquirúrgicas</div>
+      <div id="chartNotesList"></div>
+    </div>
   </div>
 </div>
 
@@ -1307,6 +1315,9 @@ let cdInt=null, cdRemaining=0;
 let registros=[];
 let drugCounter=0;
 let scales={mpa:null,ind:null,intub:null,recup:null};
+let inductionMarker=null;   // {t, time}
+let extubationMarker=null;  // {t, time}
+let chartNotes=[];           // [{t, time, notes:[str,str]}]
 
 /* Parámetros por defecto + personalizados. fixed=true => no se puede eliminar */
 let params=[
@@ -1751,121 +1762,323 @@ function playAlarm(type){
 
 /* ============ GRÁFICO DE TENDENCIAS (canvas nativo) ============ */
 const CHART_SERIES=[
-  {key:'fc',   label:'FC',    color:'#A32D2D'},
-  {key:'fr',   label:'FR',    color:'#185FA5'},
-  {key:'spo2', label:'SpO₂',  color:'#1D9E75'},
-  {key:'etco2',label:'EtCO₂', color:'#854F0B'},
-  {key:'pam',  label:'PAM',   color:'#6C3FA0'},
-  {key:'temp', label:'T°',    color:'#C2410C'},
+  {key:'fc',    label:'FC',    color:'#A32D2D', sym:'triangle'},
+  {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'circle'},
+  {key:'fr',    label:'FR',    color:'#185FA5', sym:'dot'},
+  {key:'spo2',  label:'SpO₂', color:'#9AA39E', sym:'dot'},
+  {key:'temp',  label:'T°',   color:'#C2410C', sym:'dot'},
+  {key:'pas',   label:'PAs',  color:'#185FA5', sym:'bp'},
+  {key:'pad',   label:'PAd',  color:'#185FA5', sym:'bp'},
+  {key:'pam',   label:'PAm',  color:'#185FA5', sym:'bp'},
 ];
+
 function renderChart(){
   const cv=document.getElementById('trendChart');
   const empty=document.getElementById('chartEmpty');
-  const legend=document.getElementById('chartLegend');
   if(!cv)return;
   const pts=registros.filter(r=>r.vals);
-  if(pts.length<1){if(empty)empty.style.display='block';cv.style.display='none';if(legend)legend.innerHTML='';return;}
+  const hasData=pts.length>0;
+  const hasMarkers=inductionMarker||extubationMarker||chartNotes.length>0;
+  if(!hasData&&!hasMarkers){if(empty)empty.style.display='block';cv.style.display='none';return;}
   if(empty)empty.style.display='none';cv.style.display='block';
 
-  /* Series con datos */
-  const active=CHART_SERIES.filter(s=>pts.some(r=>r.vals[s.key]!==''&&r.vals[s.key]!=null&&!isNaN(parseFloat(r.vals[s.key]))));
-  if(legend)legend.innerHTML=active.map(s=>
-    '<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0">'+
-    '<span style="width:16px;height:3px;background:'+s.color+';display:inline-block;border-radius:2px"></span>'+
-    '<span style="font-size:11px;color:#444">'+s.label+'</span></span>'
-  ).join('');
-
   const dpr=window.devicePixelRatio||1;
-  const cssW=cv.clientWidth||680, cssH=300;
+  const cssW=cv.clientWidth||680, cssH=340;
   cv.width=cssW*dpr; cv.height=cssH*dpr;
   const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
   ctx.clearRect(0,0,cssW,cssH);
 
-  /* Padding: izq suficiente para etiquetas Y, abajo para etiquetas X */
-  const padL=48, padR=18, padT=18, padB=40;
+  const padL=48, padR=90, padT=22, padB=68;
   const plotW=cssW-padL-padR, plotH=cssH-padT-padB;
 
   /* Eje X: tiempo en minutos */
-  /* Eje X: usar hora real del registro (HH:MM) como etiqueta */
   const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
-  const xLabels=pts.map(r=>r.time||'');
-  const xMin=0, xMax=Math.max(...xs,10);
-
-  /* Eje Y: rango dinámico entre todos los valores */
-  let allVals=[];
-  active.forEach(s=>pts.forEach(r=>{const v=parseFloat(r.vals[s.key]);if(!isNaN(v))allVals.push(v);}));
-  let yMin=allVals.length?Math.max(0,Math.floor((Math.min(...allVals)-10)/10)*10):0;
-  let yMax=allVals.length?Math.ceil((Math.max(...allVals)+10)/20)*20:120;
-  if(yMax-yMin<40){yMax=yMin+40;}
-
+  const allTimeVals=[
+    ...xs,
+    inductionMarker?inductionMarker.t/60:null,
+    extubationMarker?extubationMarker.t/60:null,
+    ...chartNotes.map(n=>n.t/60)
+  ].filter(v=>v!==null);
+  const xMin=0, xMax=Math.max(...(allTimeVals.length?allTimeVals:[10]),10);
   const X=v=>padL+(v-xMin)/(xMax-xMin||1)*plotW;
+
+  /* Eje Y: rango dinámico */
+  const BP_KEYS=['pas','pad','pam'];
+  const nonBPSeries=CHART_SERIES.filter(s=>s.sym!=='bp');
+  const activeNonBP=nonBPSeries.filter(s=>pts.some(r=>!isNaN(parseFloat(r.vals[s.key]))));
+  let allVals=[];
+  BP_KEYS.forEach(k=>pts.forEach(r=>{const v=parseFloat(r.vals[k]);if(!isNaN(v))allVals.push(v);}));
+  activeNonBP.forEach(s=>pts.forEach(r=>{const v=parseFloat(r.vals[s.key]);if(!isNaN(v))allVals.push(v);}));
+  let yMin=allVals.length?Math.max(0,Math.floor((Math.min(...allVals)-10)/10)*10):0;
+  let yMax=allVals.length?Math.ceil((Math.max(...allVals)+10)/20)*20:200;
+  if(yMax-yMin<40){yMax=yMin+40;}
   const Y=v=>padT+plotH-(v-yMin)/(yMax-yMin||1)*plotH;
 
   /* Fondo */
   ctx.fillStyle='#fafbfa'; ctx.fillRect(padL,padT,plotW,plotH);
 
-  /* Grilla horizontal (eje Y) */
+  /* Grilla horizontal */
   const ySteps=6;
-  ctx.lineWidth=1; ctx.font='10px -apple-system,Arial,sans-serif'; ctx.fillStyle='#6b7670';
+  ctx.lineWidth=1; ctx.font='10px -apple-system,Arial,sans-serif';
   for(let i=0;i<=ySteps;i++){
-    const yv=yMin+(yMax-yMin)*i/ySteps;
-    const yy=Y(yv);
+    const yv=yMin+(yMax-yMin)*i/ySteps, yy=Y(yv);
     ctx.strokeStyle=i===0?'#bcc5c0':'#e5ebe7';
     ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(padL+plotW,yy); ctx.stroke();
     ctx.textAlign='right'; ctx.textBaseline='middle';
     ctx.fillStyle='#6b7670'; ctx.fillText(Math.round(yv),padL-5,yy);
   }
-  /* Etiqueta eje Y */
   ctx.save(); ctx.translate(12,padT+plotH/2); ctx.rotate(-Math.PI/2);
   ctx.textAlign='center'; ctx.fillStyle='#9aa39e'; ctx.font='10px -apple-system,Arial,sans-serif';
-  ctx.fillText('Parámetros',0,0); ctx.restore();
+  ctx.fillText('mmHg / valores',0,0); ctx.restore();
 
-  /* Grilla vertical + etiquetas eje X */
-  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle='#6b7670';
-  ctx.font='10px -apple-system,Arial,sans-serif';
-  /* Determinar número de ticks de tiempo */
-  const xTickCount=Math.min(pts.length+1,10);
-  const xStep=xMax/(xTickCount-1||1);
-  for(let i=0;i<xTickCount;i++){
-    const xv=i*xStep; const xx=X(xv);
+  /* Grilla vertical + etiquetas eje X (solo en puntos de datos) */
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.font='10px -apple-system,Arial,sans-serif'; ctx.fillStyle='#6b7670';
+  pts.forEach((r,i)=>{
+    const xx=X(xs[i]);
     ctx.strokeStyle='#e5ebe7'; ctx.lineWidth=0.5;
     ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke();
     ctx.fillStyle='#6b7670';
-    /* Mostrar hora real si hay punto cercano, sino mostrar minutos */
-    const closest=pts.reduce((best,r,idx)=>{
-      const d=Math.abs(xs[idx]-xv); return d<best.d?{d,r}:best;
-    },{d:Infinity,r:null});
-    const lbl=closest.r&&closest.r.time?closest.r.time:Math.round(xv)+"'";
-    ctx.fillText(lbl,xx,padT+plotH+5);
-  }
-  /* Etiqueta eje X */
+    ctx.fillText(r.time||Math.round(xs[i])+"'",xx,padT+plotH+5);
+  });
   ctx.textAlign='center'; ctx.fillStyle='#9aa39e'; ctx.font='10px -apple-system,Arial,sans-serif';
-  ctx.fillText('Hora de registro',padL+plotW/2,padT+plotH+22);
+  ctx.fillText('Hora de registro',padL+plotW/2,padT+plotH+19);
 
-  /* Borde del plot */
+  /* Borde */
   ctx.strokeStyle='#cdd5d1'; ctx.lineWidth=1;
   ctx.strokeRect(padL,padT,plotW,plotH);
 
-  /* Líneas de series + puntos */
-  active.forEach(s=>{
+  /* === Series no-BP (solo símbolos, sin línea de unión) === */
+  activeNonBP.forEach(s=>{
     const validPts=pts.filter(r=>!isNaN(parseFloat(r.vals[s.key])));
-    if(validPts.length<1)return;
-    ctx.strokeStyle=s.color; ctx.lineWidth=2; ctx.lineJoin='round';
-    ctx.beginPath();
-    validPts.forEach((r,i)=>{
-      const x=X(xs[pts.indexOf(r)]), y=Y(parseFloat(r.vals[s.key]));
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-    /* Puntos */
+    if(!validPts.length)return;
     validPts.forEach(r=>{
       const x=X(xs[pts.indexOf(r)]), y=Y(parseFloat(r.vals[s.key]));
-      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,3.5,0,7); ctx.fill();
-      ctx.strokeStyle=s.color; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,3.5,0,7); ctx.stroke();
+      if(s.sym==='triangle'){
+        ctx.fillStyle=s.color; ctx.beginPath();
+        ctx.moveTo(x,y-5); ctx.lineTo(x+5,y+4); ctx.lineTo(x-5,y+4); ctx.closePath(); ctx.fill();
+      }else if(s.sym==='circle'){
+        ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+      }else{
+        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.stroke();
+      }
     });
   });
+
+  /* === Series BP: línea vertical + símbolos Y/Y-inv/X === */
+  const SZ=5;
+  pts.forEach((r,i)=>{
+    const pas=parseFloat(r.vals.pas), pad=parseFloat(r.vals.pad);
+    if(isNaN(pas)||isNaN(pad))return;
+    const x=X(xs[i]);
+    const y_sys=Y(pas), y_dia=Y(pad);
+    const pamV=parseFloat(r.vals.pam);
+    const y_pam=isNaN(pamV)?((y_sys+y_dia)/2):Y(pamV);
+
+    ctx.strokeStyle='#185FA5'; ctx.lineWidth=2;
+    /* Línea vertical */
+    ctx.beginPath(); ctx.moveTo(x,y_sys); ctx.lineTo(x,y_dia); ctx.stroke();
+    /* PAs: Y con brazos hacia arriba */
+    ctx.beginPath();
+    ctx.moveTo(x-SZ,y_sys-SZ); ctx.lineTo(x,y_sys);
+    ctx.moveTo(x+SZ,y_sys-SZ); ctx.lineTo(x,y_sys);
+    ctx.stroke();
+    /* PAd: Y invertida con brazos hacia abajo */
+    ctx.beginPath();
+    ctx.moveTo(x-SZ,y_dia+SZ); ctx.lineTo(x,y_dia);
+    ctx.moveTo(x+SZ,y_dia+SZ); ctx.lineTo(x,y_dia);
+    ctx.stroke();
+    /* PAm: X */
+    ctx.beginPath();
+    ctx.moveTo(x-SZ,y_pam-SZ); ctx.lineTo(x+SZ,y_pam+SZ);
+    ctx.moveTo(x+SZ,y_pam-SZ); ctx.lineTo(x-SZ,y_pam+SZ);
+    ctx.stroke();
+  });
+
+  /* === Marcador inducción === */
+  if(inductionMarker){
+    const xi=X(inductionMarker.t/60);
+    if(xi>=padL&&xi<=padL+plotW){
+      ctx.save();
+      ctx.strokeStyle='#3B6D11'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(xi,padT); ctx.lineTo(xi,padT+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#3B6D11'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('Inducción',xi,padT+2);
+      ctx.restore();
+    }
+  }
+
+  /* === Marcador extubación === */
+  if(extubationMarker){
+    const xe=X(extubationMarker.t/60);
+    if(xe>=padL&&xe<=padL+plotW){
+      ctx.save();
+      ctx.strokeStyle='#A32D2D'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(xe,padT); ctx.lineTo(xe,padT+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#A32D2D'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('Extubación',xe,padT+2);
+      ctx.restore();
+    }
+  }
+
+  /* === Íconos de notas === */
+  chartNotes.forEach(note=>{
+    const xn=X(note.t/60);
+    if(xn<padL||xn>padL+plotW)return;
+    const ny=padT+14;
+    ctx.fillStyle='#fff8e1';
+    ctx.fillRect(xn-6,ny,12,10);
+    ctx.strokeStyle='#854F0B'; ctx.lineWidth=1;
+    ctx.strokeRect(xn-6,ny,12,10);
+    ctx.beginPath();
+    ctx.moveTo(xn-4,ny+3); ctx.lineTo(xn+4,ny+3);
+    ctx.moveTo(xn-4,ny+6); ctx.lineTo(xn+2,ny+6);
+    ctx.stroke();
+  });
+
+  /* === Leyenda lado derecho === */
+  const lx=cssW-padR+6, lSZ=4;
+  ctx.font='10px -apple-system,Arial,sans-serif';
+  function drawLegendItem(sym,label,iy){
+    const sx=lx+8, sy=iy+5;
+    ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5; ctx.fillStyle='#185FA5';
+    switch(sym){
+      case 'PAs':
+        ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5;
+        ctx.beginPath();
+        ctx.moveTo(sx-lSZ,sy-lSZ); ctx.lineTo(sx,sy);
+        ctx.moveTo(sx+lSZ,sy-lSZ); ctx.lineTo(sx,sy);
+        ctx.stroke();
+        break;
+      case 'PAd':
+        ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5;
+        ctx.beginPath();
+        ctx.moveTo(sx-lSZ,sy+lSZ); ctx.lineTo(sx,sy);
+        ctx.moveTo(sx+lSZ,sy+lSZ); ctx.lineTo(sx,sy);
+        ctx.stroke();
+        break;
+      case 'PAm':
+        ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5;
+        ctx.beginPath();
+        ctx.moveTo(sx-lSZ,sy-lSZ); ctx.lineTo(sx+lSZ,sy+lSZ);
+        ctx.moveTo(sx+lSZ,sy-lSZ); ctx.lineTo(sx-lSZ,sy+lSZ);
+        ctx.stroke();
+        break;
+      case 'FC':
+        ctx.fillStyle='#A32D2D'; ctx.beginPath();
+        ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx+lSZ,sy+lSZ); ctx.lineTo(sx-lSZ,sy+lSZ); ctx.closePath(); ctx.fill();
+        break;
+      case 'CO2':
+        ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.fill();
+        break;
+      case 'nota':
+        ctx.fillStyle='#fff8e1'; ctx.fillRect(sx-5,sy-4,10,8);
+        ctx.strokeStyle='#854F0B'; ctx.lineWidth=1;
+        ctx.strokeRect(sx-5,sy-4,10,8);
+        ctx.beginPath();
+        ctx.moveTo(sx-3,sy-1); ctx.lineTo(sx+3,sy-1);
+        ctx.moveTo(sx-3,sy+2); ctx.lineTo(sx+1,sy+2);
+        ctx.stroke();
+        break;
+      case 'ind':
+        ctx.strokeStyle='#3B6D11'; ctx.lineWidth=1; ctx.setLineDash([3,2]);
+        ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
+        ctx.setLineDash([]);
+        break;
+      case 'ext':
+        ctx.strokeStyle='#A32D2D'; ctx.lineWidth=1; ctx.setLineDash([3,2]);
+        ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
+        ctx.setLineDash([]);
+        break;
+    }
+    ctx.fillStyle='#4a5550'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(label,lx+18,iy+5);
+  }
+  const legendItems=[
+    ['PAs','PAs'],['PAd','PAd'],['PAm','PAm'],
+    ['FC','FC'],['CO2','CO₂'],
+    ['nota','Nota'],['ind','Inducción'],['ext','Extubación'],
+  ];
+  legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
-window.addEventListener('resize',()=>{if(registros.length)renderChart();});
+window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extubationMarker||chartNotes.length)renderChart();});
+
+/* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
+function markInduction(){
+  if(inductionMarker){toast('La inducción ya fue marcada · '+inductionMarker.time);return;}
+  const now=new Date();
+  const time=p2(now.getHours())+':'+p2(now.getMinutes());
+  inductionMarker={t:timerSecs,time};
+  const btn=document.getElementById('btn-induccion');
+  if(btn){btn.textContent='✓ Inducción · '+time;btn.disabled=true;}
+  guardarSesion(true);renderChart();
+  toast('Inicio de inducción marcado · '+time);
+}
+function markExtubation(){
+  if(extubationMarker){toast('La extubación ya fue marcada · '+extubationMarker.time);return;}
+  const now=new Date();
+  const time=p2(now.getHours())+':'+p2(now.getMinutes());
+  extubationMarker={t:timerSecs,time};
+  const btn=document.getElementById('btn-extubacion');
+  if(btn){btn.textContent='✓ Extubación · '+time;btn.disabled=true;}
+  guardarSesion(true);renderChart();
+  toast('Extubación marcada · '+time);
+}
+function openChartNote(){
+  const now=new Date();
+  const time=p2(now.getHours())+':'+p2(now.getMinutes());
+  const t=timerSecs;
+  document.getElementById('modalBg').innerHTML=
+    '<div class="modal">'+
+    '<h3>Nota intraquirúrgica</h3>'+
+    '<p style="font-size:13px;color:var(--muted);margin-bottom:10px">Tiempo: '+time+' · Min '+Math.floor(t/60)+'</p>'+
+    '<div class="field"><label>Nota</label>'+
+    '<textarea id="chart-note-text" placeholder="Ej: inicio cirugía, bolo rescate, evento..." rows="3" style="width:100%;resize:vertical"></textarea>'+
+    '</div>'+
+    '<div class="modal-actions">'+
+    '<button class="btn" data-action="closeModal">Cancelar</button>'+
+    '<button class="btn btn-primary" data-action="confirmChartNote" data-t="'+t+'" data-time="'+time+'">Guardar nota</button>'+
+    '</div></div>';
+  document.getElementById('modalBg').classList.add('show');
+  setTimeout(()=>{const el=document.getElementById('chart-note-text');if(el)el.focus();},50);
+}
+function confirmChartNote(btn){
+  const textEl=document.getElementById('chart-note-text');
+  const text=(textEl?textEl.value:'').trim();
+  if(!text){toast('Escribe una nota');return;}
+  const t=parseInt(btn.dataset.t);
+  const time=btn.dataset.time;
+  const existing=chartNotes.find(n=>n.t===t);
+  if(existing){
+    if(existing.notes.length<2){existing.notes.push(text);}
+    else{existing.notes[1]+=' / '+text;}
+  }else{
+    chartNotes.push({t,time,notes:[text]});
+  }
+  closeModal();guardarSesion(true);renderChart();renderChartNotes();
+  toast('Nota guardada · '+time);
+}
+function renderChartNotes(){
+  const section=document.getElementById('chartNotesSection');
+  const list=document.getElementById('chartNotesList');
+  if(!section||!list)return;
+  if(!chartNotes.length){section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML=chartNotes
+    .slice().sort((a,b)=>a.t-b.t)
+    .map(n=>n.notes.map(txt=>
+      '<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--line-soft)">'+
+      '<span style="font-size:12px;font-weight:600;color:var(--teal-d);white-space:nowrap;min-width:40px">'+n.time+'</span>'+
+      '<span style="font-size:13px;color:var(--ink)">'+txt+'</span>'+
+      '</div>'
+    ).join('')).join('');
+}
 
 /* ============ ESCALAS RECUPERACIÓN ============ */
 function renderScales(){
@@ -1894,8 +2107,13 @@ function nuevoRegistro(){
   document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('on'));
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
+  inductionMarker=null;extubationMarker=null;chartNotes=[];
+  const btnInd=document.getElementById('btn-induccion');
+  if(btnInd){btnInd.textContent='Inicio inducción';btnInd.disabled=false;}
+  const btnExt=document.getElementById('btn-extubacion');
+  if(btnExt){btnExt.textContent='Extubación';btnExt.disabled=false;}
   params=params.filter(p=>p.fixed);
-  renderRegGrid();renderRegTable();renderScales();renderChart();
+  renderRegGrid();renderRegTable();renderScales();renderChart();renderChartNotes();
   refreshMantOptions&&refreshMantOptions();
   document.querySelectorAll('.sbtn').forEach(b=>{b.classList.remove('on');b.style.background='';});
   document.getElementById('asaBadge').innerHTML='';
@@ -2653,7 +2871,10 @@ function estadoAJSON(){
     params:       JSON.parse(JSON.stringify(params)),
     scales:       JSON.parse(JSON.stringify(scales)),
     ajustesMant:  JSON.parse(JSON.stringify(ajustesMant)),
-    timerSecs
+    timerSecs,
+    inductionMarker:  inductionMarker  ? JSON.parse(JSON.stringify(inductionMarker))  : null,
+    extubationMarker: extubationMarker ? JSON.parse(JSON.stringify(extubationMarker)) : null,
+    chartNotes:   JSON.parse(JSON.stringify(chartNotes))
   };
 }
 
@@ -2734,10 +2955,17 @@ function restaurarSesion(estado){
   scales      = estado.scales      || scales;
   ajustesMant = estado.ajustesMant || [];
   timerSecs   = estado.timerSecs   || 0;
+  inductionMarker  = estado.inductionMarker  || null;
+  extubationMarker = estado.extubationMarker || null;
+  chartNotes       = estado.chartNotes       || [];
   document.getElementById('timer').textContent = fmt(timerSecs);
+  const btnInd=document.getElementById('btn-induccion');
+  if(btnInd&&inductionMarker){btnInd.textContent='✓ Inducción · '+inductionMarker.time;btnInd.disabled=true;}
+  const btnExt=document.getElementById('btn-extubacion');
+  if(btnExt&&extubationMarker){btnExt.textContent='✓ Extubación · '+extubationMarker.time;btnExt.disabled=true;}
 
   /* Re-renderizar todo */
-  renderRegGrid();  renderRegTable(); renderScales(); renderChart();
+  renderRegGrid();  renderRegTable(); renderScales(); renderChart(); renderChartNotes();
   renderAjustesTabla();
   refreshMantOptions && refreshMantOptions();
   return true;
@@ -3078,6 +3306,10 @@ function init(){
       case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       case 'compartirPDF':    compartirPDF(); break;
       case 'enviarPorMail':   enviarPorMail(); break;
+      case 'markInduction':   markInduction(); break;
+      case 'markExtubation':  markExtubation(); break;
+      case 'openChartNote':   openChartNote(); break;
+      case 'confirmChartNote': confirmChartNote(el); break;
 
       case 'revokeObjectUrl':  setTimeout(()=>{ try{ URL.revokeObjectURL(el.dataset.url); }catch(e){} },1000); break;
       default: console.warn('Unknown action:', action);
