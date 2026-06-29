@@ -807,10 +807,6 @@ input[type=date],select,textarea{
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     Compartir
   </button>
-  <button class="btn btn-lg" data-action="enviarPorMail" title="Descargar PDF y abrir correo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-    Mail
-  </button>
   <button class="btn btn-lg" data-action="nuevoRegistro">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
     Nuevo
@@ -2662,79 +2658,41 @@ async function generarPDFBlob(){
   return resultado; /* {blob, fn} — dataUri se genera bajo demanda */
 }
 
-/* Detectar Safari (incluyendo iOS Safari y Safari macOS) */
-function esSafari(){
-  const ua = navigator.userAgent || '';
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-  const isSafariMac = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
-  return isIOS || isSafariMac;
-}
-
-/* Compartir con Web Share API — abre la hoja de compartir nativa del dispositivo */
+/* COMPARTIR — único botón de envío. En móvil/tablet (iOS 15+, Android, Chrome)
+   usa Web Share con el archivo: el PDF queda ADJUNTO al elegir Mail/WhatsApp/etc.,
+   con el asunto (title) y el mensaje (text) pre-rellenados. En escritorio (sin
+   Web Share con archivos) descarga el PDF y abre el correo con asunto y mensaje. */
 async function compartirPDF(){
   const res = await generarPDFBlob();
   if(!res) return;
   const { blob, fn } = res;
 
-  /* Safari (iOS/macOS): Web Share con archivos funciona en iOS 15+ via File object
-     pero requiere que el archivo sea creado antes de llamar share().
-     En Safari macOS y versiones antiguas de iOS, usar el modal de opciones. */
-  if(esSafari()){
-    /* Intentar Web Share con archivo en iOS 15+ */
-    const fileObj = new File([blob], fn, {type:'application/pdf'});
-    if(navigator.canShare && navigator.canShare({files:[fileObj]})){
-      try{
-        await navigator.share({
-          title: 'Registro Anestésico SOMNUS',
-          text: 'Registro anestésico — '+(val('f_paciente')||'paciente')+' — '+(val('f_fecha')||''),
-          files: [fileObj]
-        });
-        toast('✓ PDF compartido');
-        return;
-      } catch(e){
-        if(e.name === 'AbortError') return;
-        /* Falló el share con archivo — usar modal */
-      }
-    }
-    /* Fallback Safari: abrir dataURI directamente (abre en visor PDF de Safari,
-       desde donde el usuario puede usar el botón nativo de compartir/guardar) */
-    const {jsPDF}=window.jspdf;
-    const orient=document.getElementById('f_orient')?document.getElementById('f_orient').value:'portrait';
-    const doc2=new jsPDF(orient==='landscape'?{orientation:'landscape',unit:'mm',format:'a4'}:{unit:'mm',format:'a4'});
-    /* Reutilizar el blob ya generado como dataUri */
-    const reader = new FileReader();
-    reader.onload = function(){
-      const a = document.createElement('a');
-      a.href = reader.result;
-      a.download = fn;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>document.body.removeChild(a), 300);
-      toast('📄 PDF abierto — usa el botón ↑ de Safari para compartir o guardar');
-    };
-    reader.readAsDataURL(blob);
-    return;
-  }
+  const asunto  = asuntoMail();
+  const cuerpo  = cuerpoMail();
+  const fileObj = new File([blob], fn, {type:'application/pdf'});
 
-  /* Chrome/Firefox/Edge: Web Share API nivel 2 con archivo */
-  if(navigator.canShare && navigator.canShare({ files: [new File([blob], fn, {type:'application/pdf'})] })){
-    try {
-      await navigator.share({
-        title: 'Registro Anestésico SOMNUS',
-        text: 'Registro anestésico — ' + (val('f_paciente')||'paciente') + ' — ' + (val('f_fecha')||''),
-        files: [new File([blob], fn, {type:'application/pdf'})]
-      });
-      toast('✓ PDF compartido');
+  if(navigator.canShare && navigator.canShare({files:[fileObj]})){
+    try{
+      await navigator.share({ title: asunto, text: cuerpo, files: [fileObj] });
+      toast('✓ Registro compartido');
       return;
     } catch(e){
-      if(e.name !== 'AbortError') console.warn('Share error:', e);
-      if(e.name === 'AbortError') return;
+      if(e.name === 'AbortError') return; /* usuario canceló */
+      /* si falla el share con archivo, caer al respaldo de escritorio */
     }
   }
 
-  /* Fallback final: modal de opciones */
-  mostrarOpcionesEnvio(blob, fn);
+  /* Escritorio / sin Web Share con archivos: descargar PDF + abrir correo */
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fn;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  } catch(e){ console.warn('Descarga fallback:', e); }
+
+  setTimeout(()=>{ window.location.href = 'mailto:?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo); }, 600);
+  toast('📧 PDF descargado · correo abierto con asunto y mensaje · adjunta el PDF');
 }
 
 /* ── ENVIAR POR MAIL ───────────────────────────────────────────────────
@@ -2766,61 +2724,6 @@ function cuerpoMail(){
   if(ciru)    L.push('Cirujano: '+ciru);
   if(clinica) L.push('Clínica: '+clinica);
   return L.join('\n');
-}
-async function enviarPorMail(){
-  const res = await generarPDFBlob();
-  if(!res) return;
-  const { blob, fn } = res;
-
-  const asunto  = asuntoMail();
-  const cuerpo  = cuerpoMail();
-  const fileObj = new File([blob], fn, {type:'application/pdf'});
-
-  /* Móvil/tablet: compartir el archivo → el PDF queda ADJUNTO al elegir Mail */
-  if(navigator.canShare && navigator.canShare({files:[fileObj]})){
-    try{
-      await navigator.share({ title: asunto, text: cuerpo, files: [fileObj] });
-      toast('✓ PDF listo para enviar por correo');
-      return;
-    } catch(e){
-      if(e.name === 'AbortError') return; /* usuario canceló */
-      /* si falla el share con archivo, caer al respaldo de escritorio */
-    }
-  }
-
-  /* Escritorio / sin Web Share con archivos: no se puede adjuntar automáticamente.
-     Descargar el PDF y abrir el correo con asunto y mensaje. */
-  try{
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = fn;
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
-  } catch(e){ console.warn('Descarga fallback:', e); }
-
-  setTimeout(()=>{ window.location.href = 'mailto:?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo); }, 600);
-  toast('📧 Correo abierto · adjunta el PDF descargado');
-}
-
-/* Hoja de opciones para desktop cuando no hay Web Share */
-function mostrarOpcionesEnvio(blob, fn){
-  const modal = document.getElementById('modalBg');
-  const reader = new FileReader();
-  reader.onload = function(){
-    const dataUri = reader.result;
-    modal.innerHTML =
-      '<div class="modal">' +
-      '<h3 style="margin-bottom:10px">Enviar PDF por correo</h3>' +
-      '<p style="color:var(--muted);font-size:13px;margin-bottom:16px">' +
-        'Descarga el PDF y adjúntalo a tu correo.' +
-      '</p>' +
-      '<div style="display:flex;flex-direction:column;gap:10px">' +
-      '<a href="' + dataUri + '" download="' + fn + '" class="btn btn-primary" style="text-align:center;text-decoration:none">⬇ Descargar PDF</a>' +
-      '<button class="btn" data-action="closeModal">Cerrar</button>' +
-      '</div></div>';
-    modal.classList.add('show');
-  };
-  reader.readAsDataURL(blob);
 }
 
 /* ============ INIT ============ */
@@ -3358,7 +3261,6 @@ function init(){
       case 'importarBorrador': importarBorradorJSON(); break;
       case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       case 'compartirPDF':    compartirPDF(); break;
-      case 'enviarPorMail':   enviarPorMail(); break;
       case 'markInduction':   markInduction(); break;
       case 'markExtubation':  markExtubation(); break;
       case 'clearInduction':  clearInduction(); break;
