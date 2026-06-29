@@ -710,7 +710,7 @@ input[type=date],select,textarea{
       <span class="card-title">Gráfico de tendencias</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn btn-sm" id="btn-induccion" data-action="markInduction">Inicio inducción</button>
+      <button class="btn btn-sm" id="btn-induccion" data-action="markInduction">Inducción</button>
       <button class="btn btn-sm" id="btn-extubacion" data-action="markExtubation">Extubación</button>
       <button class="btn btn-sm" data-action="openChartNote">&#x1F4DD; Agregar nota</button>
     </div>
@@ -1762,8 +1762,8 @@ function playAlarm(type){
 
 /* ============ GRÁFICO DE TENDENCIAS (canvas nativo) ============ */
 const CHART_SERIES=[
-  {key:'fc',    label:'FC',    color:'#A32D2D', sym:'circle'},
-  {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'square'},
+  {key:'fc',    label:'FC',    color:'#A32D2D', sym:'triangle'},
+  {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'circle'},
   {key:'fr',    label:'FR',    color:'#185FA5', sym:'dot'},
   {key:'spo2',  label:'SpO₂', color:'#9AA39E', sym:'dot'},
   {key:'temp',  label:'T°',   color:'#C2410C', sym:'dot'},
@@ -1848,23 +1848,17 @@ function renderChart(){
   ctx.strokeStyle='#cdd5d1'; ctx.lineWidth=1;
   ctx.strokeRect(padL,padT,plotW,plotH);
 
-  /* === Series no-BP (línea + símbolo) === */
+  /* === Series no-BP (solo símbolos, sin línea de unión) === */
   activeNonBP.forEach(s=>{
     const validPts=pts.filter(r=>!isNaN(parseFloat(r.vals[s.key])));
     if(!validPts.length)return;
-    ctx.strokeStyle=s.color; ctx.lineWidth=1.5; ctx.lineJoin='round';
-    ctx.beginPath();
-    validPts.forEach((r,i)=>{
-      const x=X(xs[pts.indexOf(r)]), y=Y(parseFloat(r.vals[s.key]));
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.stroke();
     validPts.forEach(r=>{
       const x=X(xs[pts.indexOf(r)]), y=Y(parseFloat(r.vals[s.key]));
-      if(s.sym==='circle'){
+      if(s.sym==='triangle'){
+        ctx.fillStyle=s.color; ctx.beginPath();
+        ctx.moveTo(x,y-5); ctx.lineTo(x+5,y+4); ctx.lineTo(x-5,y+4); ctx.closePath(); ctx.fill();
+      }else if(s.sym==='circle'){
         ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
-      }else if(s.sym==='square'){
-        ctx.fillStyle=s.color; ctx.fillRect(x-4,y-4,8,8);
       }else{
         ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
         ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
@@ -1955,26 +1949,6 @@ function renderChart(){
     const sx=lx+8, sy=iy+5;
     ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5; ctx.fillStyle='#185FA5';
     switch(sym){
-      case 'anest':
-        ctx.strokeStyle='#C77B00'; ctx.lineWidth=1.2;
-        ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(sx-lSZ+1,sy-lSZ+1); ctx.lineTo(sx+lSZ-1,sy+lSZ-1);
-        ctx.moveTo(sx+lSZ-1,sy-lSZ+1); ctx.lineTo(sx-lSZ+1,sy+lSZ-1);
-        ctx.stroke();
-        break;
-      case 'proc':
-        ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.2;
-        ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.stroke();
-        ctx.fillStyle='#185FA5'; ctx.beginPath(); ctx.arc(sx,sy,1.5,0,Math.PI*2); ctx.fill();
-        break;
-      case 'evnt':
-        ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ);
-        ctx.moveTo(sx-lSZ+1,sy+lSZ-2); ctx.lineTo(sx,sy+lSZ);
-        ctx.moveTo(sx+lSZ-1,sy+lSZ-2); ctx.lineTo(sx,sy+lSZ);
-        ctx.stroke();
-        break;
       case 'PAs':
         ctx.strokeStyle='#185FA5'; ctx.lineWidth=1.5;
         ctx.beginPath();
@@ -1997,10 +1971,11 @@ function renderChart(){
         ctx.stroke();
         break;
       case 'FC':
-        ctx.fillStyle='#A32D2D'; ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#A32D2D'; ctx.beginPath();
+        ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx+lSZ,sy+lSZ); ctx.lineTo(sx-lSZ,sy+lSZ); ctx.closePath(); ctx.fill();
         break;
       case 'CO2':
-        ctx.fillStyle='#1D9E75'; ctx.fillRect(sx-lSZ,sy-lSZ,lSZ*2,lSZ*2);
+        ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.fill();
         break;
       case 'nota':
         ctx.fillStyle='#fff8e1'; ctx.fillRect(sx-5,sy-4,10,8);
@@ -2026,7 +2001,6 @@ function renderChart(){
     ctx.fillText(label,lx+18,iy+5);
   }
   const legendItems=[
-    ['anest','Anest.'],['proc','Proc.'],['evnt','Evnt.'],
     ['PAs','PAs'],['PAd','PAd'],['PAm','PAm'],
     ['FC','FC'],['CO2','CO₂'],
     ['nota','Nota'],['ind','Inducción'],['ext','Extubación'],
