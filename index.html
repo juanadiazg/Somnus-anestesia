@@ -1733,6 +1733,7 @@ function delReg(i){registros.splice(i,1);renderRegTable();renderChart();}
 function editRegTime(idx, val){
   if(idx >= 0 && idx < registros.length){
     registros[idx].time = val;
+    renderChart();
     guardarSesion(true);
   }
 }
@@ -1791,15 +1792,24 @@ function renderChart(){
   const padL=48, padR=90, padT=22, padB=68;
   const plotW=cssW-padL-padR, plotH=cssH-padT-padB;
 
-  /* Eje X: tiempo en minutos */
-  const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
-  const allTimeVals=[
-    ...xs,
-    inductionMarker?inductionMarker.t/60:null,
-    extubationMarker?extubationMarker.t/60:null,
-    ...chartNotes.map(n=>n.t/60)
-  ].filter(v=>v!==null);
-  const xMin=0, xMax=Math.max(...(allTimeVals.length?allTimeVals:[10]),10);
+  /* Eje X: posición según la hora real de registro (HH:MM) de la tabla.
+     Fallback al cronómetro (t) o al índice si la hora no es válida. */
+  function clockMin(s){
+    if(typeof s==='string'){const m=s.match(/^(\d{1,2}):(\d{2})$/);if(m)return (+m[1])*60+(+m[2]);}
+    return null;
+  }
+  function evX(o){
+    if(!o)return null;
+    const c=clockMin(o.time); if(c!=null)return c;
+    return o.t!=null?o.t/60:null;
+  }
+  const xs=pts.map((r,i)=>{const c=clockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
+  const indX=evX(inductionMarker), extX=evX(extubationMarker);
+  const noteX=chartNotes.map(evX);
+  const allTimeVals=[...xs,indX,extX,...noteX].filter(v=>v!=null);
+  let xMin=allTimeVals.length?Math.min(...allTimeVals):0;
+  let xMax=allTimeVals.length?Math.max(...allTimeVals):10;
+  if(xMax-xMin<10){xMax=xMin+10;}
   const X=v=>padL+(v-xMin)/(xMax-xMin||1)*plotW;
 
   /* Eje Y: rango dinámico */
@@ -1898,8 +1908,8 @@ function renderChart(){
   });
 
   /* === Marcador inducción === */
-  if(inductionMarker){
-    const xi=X(inductionMarker.t/60);
+  if(inductionMarker&&indX!=null){
+    const xi=X(indX);
     if(xi>=padL&&xi<=padL+plotW){
       ctx.save();
       ctx.strokeStyle='#3B6D11'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
@@ -1913,8 +1923,8 @@ function renderChart(){
   }
 
   /* === Marcador extubación === */
-  if(extubationMarker){
-    const xe=X(extubationMarker.t/60);
+  if(extubationMarker&&extX!=null){
+    const xe=X(extX);
     if(xe>=padL&&xe<=padL+plotW){
       ctx.save();
       ctx.strokeStyle='#A32D2D'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
@@ -1928,9 +1938,9 @@ function renderChart(){
   }
 
   /* === Íconos de notas === */
-  chartNotes.forEach(note=>{
-    const xn=X(note.t/60);
-    if(xn<padL||xn>padL+plotW)return;
+  chartNotes.forEach((note,ni)=>{
+    const xn=X(noteX[ni]);
+    if(noteX[ni]==null||xn<padL||xn>padL+plotW)return;
     const ny=padT+14;
     ctx.fillStyle='#fff8e1';
     ctx.fillRect(xn-6,ny,12,10);
