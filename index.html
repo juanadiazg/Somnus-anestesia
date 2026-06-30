@@ -493,6 +493,7 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5L3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7zM8.5 8.5l7 7"/></svg>
       <span class="card-title">Premedicación (MPA)</span>
     </div>
+    <div class="field" style="max-width:180px;margin-bottom:8px"><label>Hora MPA</label><input type="time" id="f_hora_mpa"></div>
     <div id="list-mpa"></div>
     <button class="btn btn-sm" data-action="addDrug" data-section="mpa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Agregar fármaco</button>
   </div>
@@ -2189,41 +2190,11 @@ function nuevoRegistro(){
 
 /* ============ EXPORTAR PDF ============ */
 function captureChartImage(){
-  /* genera el gráfico en un canvas off-screen de alta resolución para el PDF */
   if(!registros.length)return null;
   try{
-    const W=900,H=360;
-    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
-    const ctx=cv.getContext('2d');
-    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
-    const pts=registros.filter(r=>r.vals);
-    const active=CHART_SERIES.filter(s=>pts.some(r=>r.vals[s.key]!==''&&r.vals[s.key]!=null&&!isNaN(parseFloat(r.vals[s.key]))));
-    if(!active.length)return null;
-    const padL=54,padR=20,padT=22,padB=46;
-    const plotW=W-padL-padR,plotH=H-padT-padB;
-    /* Eje X: usar hora real del registro (HH:MM) como etiqueta */
-  const xs=pts.map((r,i)=>r.t!=null?r.t/60:i);
-  const xLabels=pts.map(r=>r.time||'');
-    const xMin=Math.min(...xs),xMax=Math.max(...xs,xMin+1);
-    let yMax=0;active.forEach(s=>pts.forEach(r=>{const v=parseFloat(r.vals[s.key]);if(!isNaN(v)&&v>yMax)yMax=v;}));
-    yMax=Math.ceil((yMax+5)/20)*20;if(yMax<60)yMax=60;
-    const X=v=>padL+(v-xMin)/(xMax-xMin||1)*plotW;
-    const Y=v=>padT+plotH-(v/yMax)*plotH;
-    ctx.strokeStyle='#e4e9e7';ctx.lineWidth=1;ctx.fillStyle='#6b7670';ctx.font='15px Arial';
-    for(let i=0;i<=5;i++){const yv=yMax*i/5,yy=Y(yv);ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(Math.round(yv),padL-8,yy);}
-    ctx.textAlign='center';ctx.textBaseline='top';
-    const xt=Math.min(pts.length,10);
-    for(let i=0;i<xt;i++){const idx=Math.round(i*(pts.length-1)/(xt-1||1));ctx.fillText(Math.round(xs[idx])+"'",X(xs[idx]),padT+plotH+8);}
-    ctx.fillText('minutos',W/2,H-18);
-    active.forEach(s=>{
-      ctx.strokeStyle=s.color;ctx.lineWidth=2.5;ctx.beginPath();let st=false;
-      pts.forEach((r,i)=>{const v=parseFloat(r.vals[s.key]);if(isNaN(v))return;const xx=X(xs[i]),yy=Y(v);if(!st){ctx.moveTo(xx,yy);st=true;}else ctx.lineTo(xx,yy);});
-      ctx.stroke();ctx.fillStyle=s.color;
-      pts.forEach((r,i)=>{const v=parseFloat(r.vals[s.key]);if(isNaN(v))return;ctx.beginPath();ctx.arc(X(xs[i]),Y(v),3.2,0,7);ctx.fill();});
-    });
-    /* leyenda */
-    let lx=padL;ctx.font='14px Arial';ctx.textAlign='left';ctx.textBaseline='middle';
-    active.forEach(s=>{ctx.fillStyle=s.color;ctx.fillRect(lx,8,16,4);ctx.fillStyle='#333';ctx.fillText(s.label,lx+20,10);lx+=20+ctx.measureText(s.label).width+18;});
+    const cv=document.getElementById('trendChart');
+    if(!cv)return null;
+    renderChart();
     return cv.toDataURL('image/png');
   }catch(e){return null;}
 }
@@ -2331,6 +2302,7 @@ function exportPDFPortrait(){
   yL+=1.5;
 
   section('L','Farmacología');
+  if(val('f_hora_mpa'))kv('L','Hora MPA',val('f_hora_mpa'));
   drugs('L','Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
   drugs('L','Inducción',getDrugs('list-ind').map(drugLine));
   drugs('L','Mantenimiento',getDrugs('list-mant').map(drugLine));
@@ -2363,7 +2335,9 @@ function exportPDFPortrait(){
     section('R','Tendencias');
     const img=captureChartImage();
     if(img){
-      const imgH=colW*(360/900);
+      const chartCv=document.getElementById('trendChart');
+      const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
+      const imgH=colW*ratio;
       try{doc.addImage(img,'PNG',Rx,yR,colW,imgH);}catch(e){}
       yR+=imgH+2.5;
     }
@@ -2540,6 +2514,7 @@ function exportPDFLandscape(){
 
   /* ============ COLUMNA 1: Farmacología + Recuperación ============ */
   section(1,'Farmacología');
+  if(val('f_hora_mpa'))kv(1,'Hora MPA',val('f_hora_mpa'));
   drugs(1,'Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
   drugs(1,'Inducción',getDrugs('list-ind').map(drugLine));
   drugs(1,'Mantenimiento',getDrugs('list-mant').map(drugLine));
@@ -2570,7 +2545,9 @@ function exportPDFLandscape(){
     section(2,'Tendencias');
     const img=captureChartImage();
     if(img){
-      const imgH=cw*(360/900);
+      const chartCv=document.getElementById('trendChart');
+      const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
+      const imgH=cw*ratio;
       try{doc.addImage(img,'PNG',colX[2],yc[2],cw,imgH);}catch(e){}
       yc[2]+=imgH+3;
     }
@@ -2782,7 +2759,7 @@ function estadoAJSON(){
     'f_mucosas','f_tllc','f_deshid','f_glucosa','f_obs_pre',
     'f_sonda','f_cuff','f_inhalatorio','f_circuito',
     'f_intervalo','f_alarma',
-    'f_hora_inicio','f_hora_fin',
+    'f_hora_mpa','f_hora_inicio','f_hora_fin',
     'f_fluido','f_extub','f_esternal','f_bipe','f_alta',
     'f_tipo_recup','f_dolor_post','f_vol_total','f_recom','f_orient',
     /* Campos "Otro" de técnica */
