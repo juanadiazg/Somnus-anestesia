@@ -1801,10 +1801,10 @@ function chartClockMin(s){
 }
 const CHART_SERIES=[
   {key:'fc',    label:'FC',    color:'#A32D2D', sym:'triangle'},
-  {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'circle'},
-  {key:'fr',    label:'FR',    color:'#185FA5', sym:'dot'},
-  {key:'spo2',  label:'SpO₂', color:'#9AA39E', sym:'dot'},
-  {key:'temp',  label:'T°',   color:'#C2410C', sym:'dot'},
+  {key:'etco2', label:'CO₂',  color:'#1D9E75', sym:'square'},
+  {key:'fr',    label:'FR',    color:'#22C55E', sym:'hline'},
+  {key:'spo2',  label:'SpO₂', color:'#EAB308', sym:'square'},
+  {key:'temp',  label:'T°',   color:'#2563EB', sym:'hline'},
   {key:'pas',   label:'PAs',  color:'#185FA5', sym:'bp'},
   {key:'pad',   label:'PAd',  color:'#185FA5', sym:'bp'},
   {key:'pam',   label:'PAm',  color:'#185FA5', sym:'bp'},
@@ -1902,6 +1902,11 @@ function renderChart(){
         ctx.moveTo(x,y-5); ctx.lineTo(x+5,y+4); ctx.lineTo(x-5,y+4); ctx.closePath(); ctx.fill();
       }else if(s.sym==='circle'){
         ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+      }else if(s.sym==='square'){
+        ctx.fillStyle=s.color; ctx.fillRect(x-4,y-4,8,8);
+      }else if(s.sym==='hline'){
+        ctx.strokeStyle=s.color; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(x-6,y); ctx.lineTo(x+6,y); ctx.stroke();
       }else{
         ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
         ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
@@ -2018,7 +2023,18 @@ function renderChart(){
         ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx+lSZ,sy+lSZ); ctx.lineTo(sx-lSZ,sy+lSZ); ctx.closePath(); ctx.fill();
         break;
       case 'CO2':
-        ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(sx,sy,lSZ,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#1D9E75'; ctx.fillRect(sx-lSZ,sy-lSZ,lSZ*2,lSZ*2);
+        break;
+      case 'SpO2':
+        ctx.fillStyle='#EAB308'; ctx.fillRect(sx-lSZ,sy-lSZ,lSZ*2,lSZ*2);
+        break;
+      case 'FR':
+        ctx.strokeStyle='#22C55E'; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(sx-lSZ*1.5,sy); ctx.lineTo(sx+lSZ*1.5,sy); ctx.stroke();
+        break;
+      case 'Temp':
+        ctx.strokeStyle='#2563EB'; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(sx-lSZ*1.5,sy); ctx.lineTo(sx+lSZ*1.5,sy); ctx.stroke();
         break;
       case 'nota':
         ctx.fillStyle='#fff8e1'; ctx.fillRect(sx-5,sy-4,10,8);
@@ -2045,7 +2061,7 @@ function renderChart(){
   }
   const legendItems=[
     ['PAs','PAs'],['PAd','PAd'],['PAm','PAm'],
-    ['FC','FC'],['CO2','CO₂'],
+    ['FC','FC'],['CO2','CO₂'],['SpO2','SpO₂'],['FR','FR'],['Temp','T°'],
     ['nota','Nota'],['ind','Inducción'],['ext','Extubación'],
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
@@ -2694,7 +2710,7 @@ function saludoHora(){
 }
 /* Asunto del correo: "SOMNUS registro anestésico de <paciente>" */
 function asuntoMail(){
-  return 'SOMNUS registro anestésico de ' + (val('f_paciente') || 'paciente');
+  return 'Registro anestésico SOMNUS-' + (val('f_paciente') || 'paciente');
 }
 /* Mensaje del correo: saludo + adjunto + anestesiólogo, cirujano y clínica */
 function cuerpoMail(){
