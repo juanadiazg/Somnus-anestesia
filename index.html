@@ -411,14 +411,14 @@ input[type=date],select,textarea{
     </div>
     <div class="grid g4">
       <div class="field"><label>Nombre</label><input id="f_paciente" placeholder="Nombre"></div>
-      <div class="field"><label>Propietario / tutor</label><input id="f_propietario" placeholder="Nombre"></div>
+      <div class="field"><label>Tutor (a)</label><input id="f_propietario" placeholder="Nombre"></div>
       <div class="field"><label>Especie</label>
         <select id="f_especie">
           <option value="">Seleccionar</option>
-          <option>Canino</option><option>Felino</option><option>Equino</option>
-          <option>Bovino</option><option>Ovino</option><option>Caprino</option>
-          <option>Porcino</option><option>Lagomorfo</option><option>Ave</option>
-          <option>Reptil</option><option>Roedor</option><option>Exótico</option><option>Otro</option>
+          <option>Ave</option><option>Bovino</option><option>Canino</option>
+          <option>Caprino</option><option>Equino</option><option>Exótico</option>
+          <option>Felino</option><option>Lagomorfo</option><option>Ovino</option>
+          <option>Porcino</option><option>Reptil</option><option>Roedor</option><option>Otro</option>
         </select>
       </div>
       <div class="field"><label>Raza</label><input id="f_raza" placeholder="Raza"></div>
@@ -427,8 +427,8 @@ input[type=date],select,textarea{
       <div class="field"><label>Sexo</label>
         <select id="f_sexo">
           <option value="">—</option>
-          <option>Macho entero</option><option>Macho castrado</option>
           <option>Hembra entera</option><option>Hembra esterilizada</option>
+          <option>Macho castrado</option><option>Macho entero</option>
         </select>
       </div>
       <div class="field"><label>Edad</label><input id="f_edad" placeholder="Ej: 7 años"></div>
@@ -462,7 +462,7 @@ input[type=date],select,textarea{
         <select id="f_estado_pre"><option>Tranquilo</option><option>Nervioso/ansioso</option><option>Agresivo</option><option>Deprimido</option><option>Estuporoso</option></select>
       </div>
       <div class="field"><label>Ayuno sólido</label>
-        <select id="f_ayuno"><option>Sí</option><option>No</option><option>Parcial</option><option>Desconocido</option></select>
+        <select id="f_ayuno"><option>Desconocido</option><option>No</option><option>Parcial</option><option selected>Sí</option></select>
       </div>
       <div class="field"><label>Dolor pre (0-10)</label><input type="number" min="0" max="10" id="f_dolor_pre" placeholder="0"></div>
     </div>
@@ -533,10 +533,10 @@ input[type=date],select,textarea{
       <div class="field"><label>N° sonda ET</label><input id="f_sonda" placeholder="Ej: 7.5"></div>
       <div class="field"><label>Cuff (cmH₂O)</label><input id="f_cuff" placeholder="—"></div>
       <div class="field"><label>Agente inhalatorio</label>
-        <select id="f_inhalatorio"><option value="">—</option><option>Isoflurano</option><option>Sevoflurano</option><option>Desflurano</option><option>N/A</option></select>
+        <select id="f_inhalatorio"><option value="">—</option><option>Desflurano</option><option>Isoflurano</option><option>Sevoflurano</option><option>N/A</option></select>
       </div>
       <div class="field"><label>Circuito</label>
-        <select id="f_circuito"><option>Sin reinhalación</option><option>Con reinhalación (círculo)</option><option>Mapleson</option><option>Bain</option><option>Jackson-Rees</option></select>
+        <select id="f_circuito"><option>Bain</option><option>Con reinhalación (círculo)</option><option>Jackson-Rees</option><option>Mapleson</option><option selected>Sin reinhalación</option></select>
       </div>
     </div>
     <div class="sub-label">Modo ventilatorio</div>
@@ -557,6 +557,7 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2l4 4-9 9-4 1 1-4zM2 22l5-1"/></svg>
       <span class="card-title">Inducción</span>
     </div>
+    <div class="field" style="max-width:180px;margin-bottom:8px"><label>Hora inducción</label><input type="time" id="f_hora_induccion"></div>
     <div id="list-ind"></div>
     <button class="btn btn-sm" data-action="addDrug" data-section="ind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Agregar fármaco</button>
   </div>
@@ -602,7 +603,7 @@ input[type=date],select,textarea{
       </label>
     </div>
     <div class="grid g3" style="margin-top:6px">
-      <div class="field"><label>Inicio procedimiento</label><input type="time" id="f_hora_inicio"></div>
+      <div class="field"><label>Inicio cirugía</label><input type="time" id="f_hora_inicio"></div>
       <div class="field"><label>Fin procedimiento</label><input type="time" id="f_hora_fin"></div>
       <div class="field"><label>Fluidoterapia (mL/kg/h)</label><input type="number" step="0.1" id="f_fluido" placeholder="5"></div>
     </div>
@@ -717,6 +718,14 @@ input[type=date],select,textarea{
     <div class="tbl-wrap">
       <table class="reg" id="regTable"><thead id="regThead"></thead><tbody id="regBody"></tbody></table>
     </div>
+  </div>
+
+  <div class="card" id="card-obs-intraq" style="display:none">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span class="card-title">Observaciones intraquirúrgicas</span>
+    </div>
+    <div id="obsIntraqList"></div>
   </div>
 
   <div class="card">
@@ -1266,16 +1275,17 @@ const DRUG_CATALOG={
     'Xilacina','Diazepam',
     'Morfina','Sulfato de magnesio',
     'Dobutamina','Dopamina','Noradrenalina',
+    'Metamizol','Dexametasona (1 mg/mL)',
     'Otro'
   ],
   /* DROGAS INTRAQUIRÚRGICAS */
   intraq:[
     'Cefazolina','Enrofloxacino','Amoxicilina + Ác. clavulánico',
-    'Carprofeno','Meloxicam','Ketoprofeno',
+    'Carprofeno','Meloxicam','Ketoprofeno','Metamizol',
     'Fentanilo','Ketamina','Lidocaína','Propofol','Midazolam',
     'Atropina','Glicopirrolato','Efedrina',
     'Noradrenalina','Adrenalina','Dobutamina','Dopamina',
-    'Dexametasona','Furosemida',
+    'Dexametasona (1 mg/mL)','Furosemida',
     'Sulfato de magnesio','Gluconato de calcio','Bicarbonato de sodio',
     'Atipamezol','Naloxona','Flumazenil',
     'Otro'
@@ -1294,7 +1304,7 @@ const DRUG_CATALOG={
   postop:[
     'Meloxicam','Carprofeno','Ketoprofeno','Robenacoxib','Firocoxib',
     'Dipirona (metamizol)','Tramadol','Metadona','Morfina','Buprenorfina',
-    'Gabapentina','Maropitant',
+    'Gabapentina','Maropitant','Dexametasona (1 mg/mL)',
     'Omeprazol','Ranitidina',
     'Amoxicilina + Ác. clavulánico','Cefazolina','Enrofloxacino',
     'Otro'
@@ -1481,12 +1491,13 @@ function addDrug(section,preset){
 
   if(section==='loco'){
     const units=UNIT_CATALOG.loco;
-    row.style.gridTemplateColumns='1.5fr 1.5fr 0.8fr 1.1fr 34px';
+    row.style.gridTemplateColumns='1.3fr 1.3fr 0.7fr 1fr 0.9fr 34px';
     row.innerHTML=
       drugSelect(drugs,preset.farmaco)+
       blockSelect(preset.bloqueo)+
       '<input placeholder="Dosis" data-f="dosis" type="number" step="any" value="'+(preset.dosis||'')+'">'+
       unitSelect(units,preset.unidad)+
+      '<input type="time" data-f="hora" value="'+(preset.hora||'')+'" title="Hora de aplicación">'+
       xBtn(id);
   } else if(section==='mant'){
     /* mantenimiento: permite elegir tipo CRI / inhalatorio / bolo y unidad acorde */
@@ -1497,6 +1508,17 @@ function addDrug(section,preset){
       '<input placeholder="Dosis" data-f="dosis" type="number" step="any" value="'+(preset.dosis||'')+'">'+
       unitSelect(units,preset.unidad)+
       viaSelect(preset.via)+
+      xBtn(id);
+  } else if(section==='intraq'){
+    /* intraquirúrgicas: además indica quién solicitó el fármaco */
+    row.style.gridTemplateColumns='1.2fr 0.8fr 0.8fr 0.9fr 1fr 34px';
+    const units=[...UNIT_CATALOG.bolus,...UNIT_CATALOG.cri];
+    row.innerHTML=
+      drugSelect(drugs,preset.farmaco)+
+      '<input placeholder="Dosis" data-f="dosis" type="number" step="any" value="'+(preset.dosis||'')+'">'+
+      unitSelect(units,preset.unidad)+
+      viaSelect(preset.via)+
+      indicacionSelect(preset.indicacion)+
       xBtn(id);
   } else {
     const units=section==='postop'?[...UNIT_CATALOG.bolus]:[...UNIT_CATALOG.bolus,...UNIT_CATALOG.cri];
@@ -1522,14 +1544,17 @@ function drugSelect(drugs,sel){
   return '<select data-f="farmaco"><option value="">Fármaco…</option>'+optList(drugs,sel)+'</select>';
 }
 function unitSelect(units,sel){
-  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(units,sel,true)+'</select>';
+  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(units,sel)+'</select>';
 }
 function blockSelect(sel){
-  return '<select data-f="bloqueo"><option value="">Bloqueo / sitio…</option>'+optList(BLOCK_CATALOG,sel,true)+'</select>';
+  return '<select data-f="bloqueo"><option value="">Bloqueo / sitio…</option>'+optList(BLOCK_CATALOG,sel)+'</select>';
 }
 function viaSelect(sel){
   const vias=['IM','IV','IV lento','SC','CRI','VO','Epidural','Intratecal','Tópica','Inhalatoria','Intraperitoneal','Local'];
-  return '<select data-f="via"><option value="">Vía…</option>'+optList(vias,sel,true)+'</select>';
+  return '<select data-f="via"><option value="">Vía…</option>'+optList(vias,sel)+'</select>';
+}
+function indicacionSelect(sel){
+  return '<select data-f="indicacion"><option value="">Indicado por…</option>'+optList(['Cirujano','Anestesiólogo'],sel,true)+'</select>';
 }
 function onDrugSelectChange(sel){
   const row=sel.closest('.drug-row');
@@ -1592,9 +1617,9 @@ function getDrugs(listId){
 }
 function drugLine(o){
   if(o.bloqueo!==undefined && o.bloqueo!==''){
-    return [o.farmaco,o.bloqueo,(o.dosis||'')+(o.unidad?' '+o.unidad:'')].filter(Boolean).join(' · ');
+    return [o.hora,o.farmaco,o.bloqueo,(o.dosis||'')+(o.unidad?' '+o.unidad:'')].filter(Boolean).join(' · ');
   }
-  return [o.farmaco,(o.dosis||'')+(o.unidad?' '+o.unidad:''),o.via].filter(Boolean).join(' · ');
+  return [o.farmaco,(o.dosis||'')+(o.unidad?' '+o.unidad:''),o.via,o.indicacion].filter(Boolean).join(' · ');
 }
 
 /* ============ MANTENIMIENTO → disponible en intraoperatorio ============ */
@@ -1664,6 +1689,23 @@ function renderRegTable(){
     ).join('');
   }
   document.getElementById('regCount').textContent=registros.length+' registro'+(registros.length===1?'':'s');
+  renderObsIntraq();
+}
+
+/* Observaciones intraquirúrgicas: agrupa las notas/eventos escritos al registrar parámetros */
+function renderObsIntraq(){
+  const card=document.getElementById('card-obs-intraq');
+  const list=document.getElementById('obsIntraqList');
+  if(!card||!list)return;
+  const notas=registros.filter(r=>r.nota);
+  if(!notas.length){card.style.display='none';list.innerHTML='';return;}
+  card.style.display='';
+  list.innerHTML=notas.map(r=>{
+    const parts=[r.time||(r.min+"'")];if(r.plano)parts.push(r.plano);
+    return '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px">'+
+      '<span style="font-weight:600;color:var(--teal-d)">'+parts.join(' · ')+'</span> — '+
+      '<span>'+String(r.nota).replace(/</g,'&lt;')+'</span></div>';
+  }).join('');
 }
 
 /* ============ AGREGAR PARÁMETRO NUEVO ============ */
@@ -1753,6 +1795,7 @@ function editRegTime(idx, val){
   if(idx >= 0 && idx < registros.length){
     registros[idx].time = val;
     renderChart();
+    renderObsIntraq();
     guardarSesion(true);
   }
 }
@@ -1764,10 +1807,10 @@ function editRegVal(idx, key, value){
   guardarSesion(true);
 }
 function editRegPlano(idx, value){
-  if(idx>=0&&idx<registros.length){registros[idx].plano=value;guardarSesion(true);}
+  if(idx>=0&&idx<registros.length){registros[idx].plano=value;renderObsIntraq();guardarSesion(true);}
 }
 function editRegNota(idx, value){
-  if(idx>=0&&idx<registros.length){registros[idx].nota=value;guardarSesion(true);}
+  if(idx>=0&&idx<registros.length){registros[idx].nota=value;renderObsIntraq();guardarSesion(true);}
 }
 
 /* ============ ALARMA SONORA (WebAudio, sin archivos) ============ */
@@ -1838,8 +1881,10 @@ function renderChart(){
   }
   const xs=pts.map((r,i)=>{const c=chartClockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
   const indX=evX(inductionMarker), extX=evX(extubationMarker);
+  const inicioCxTime=val('f_hora_inicio');
+  const iniX=inicioCxTime?chartClockMin(inicioCxTime):null;
   const noteX=chartNotes.map(evX);
-  const allTimeVals=[...xs,indX,extX,...noteX].filter(v=>v!=null);
+  const allTimeVals=[...xs,indX,extX,iniX,...noteX].filter(v=>v!=null);
   let xMin=allTimeVals.length?Math.min(...allTimeVals):0;
   let xMax=allTimeVals.length?Math.max(...allTimeVals):10;
   if(xMax-xMin<10){xMax=xMin+10;}
@@ -1944,6 +1989,21 @@ function renderChart(){
     ctx.moveTo(x+SZ,y_pam-SZ); ctx.lineTo(x-SZ,y_pam+SZ);
     ctx.stroke();
   });
+
+  /* === Marcador inicio cirugía === */
+  if(iniX!=null){
+    const xc=X(iniX);
+    if(xc>=padL&&xc<=padL+plotW){
+      ctx.save();
+      ctx.strokeStyle='#0F766E'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(xc,padT); ctx.lineTo(xc,padT+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#0F766E'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('Inicio cirugía',xc,padT+2);
+      ctx.restore();
+    }
+  }
 
   /* === Marcador inducción === */
   if(inductionMarker&&indX!=null){
@@ -2055,6 +2115,11 @@ function renderChart(){
         ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
         ctx.setLineDash([]);
         break;
+      case 'iniciocx':
+        ctx.strokeStyle='#0F766E'; ctx.lineWidth=1; ctx.setLineDash([3,2]);
+        ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
+        ctx.setLineDash([]);
+        break;
     }
     ctx.fillStyle='#4a5550'; ctx.textAlign='left'; ctx.textBaseline='middle';
     ctx.fillText(label,lx+18,iy+5);
@@ -2062,7 +2127,7 @@ function renderChart(){
   const legendItems=[
     ['PAs','PAs'],['PAd','PAd'],['PAm','PAm'],
     ['FC','FC'],['CO2','CO₂'],['SpO2','SpO₂'],['FR','FR'],['Temp','T°'],
-    ['nota','Nota'],['ind','Inducción'],['ext','Extubación'],
+    ['nota','Nota'],['iniciocx','Inicio cirugía'],['ind','Inducción'],['ext','Extubación'],
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
@@ -2072,8 +2137,9 @@ window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extu
 /* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
 function refreshMarkerUI(){
   const bi=document.getElementById('btn-induccion'),ie=document.getElementById('ind-edit'),it=document.getElementById('ind-time');
-  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;}
-  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';}
+  const hi=document.getElementById('f_hora_induccion');
+  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;if(hi)hi.value=inductionMarker.time;}
+  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';if(hi)hi.value='';}
   const be=document.getElementById('btn-extubacion'),ee=document.getElementById('ext-edit'),et=document.getElementById('ext-time');
   if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;}
   else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';}
@@ -2094,10 +2160,15 @@ function markExtubation(){
   refreshMarkerUI();guardarSesion(true);renderChart();
   toast('Extubación marcada · '+time);
 }
-function editInductionTime(v){if(inductionMarker&&v){inductionMarker.time=v;renderChart();guardarSesion(true);}}
+function editInductionTime(v){if(inductionMarker&&v){inductionMarker.time=v;refreshMarkerUI();renderChart();guardarSesion(true);}}
 function editExtubationTime(v){if(extubationMarker&&v){extubationMarker.time=v;renderChart();guardarSesion(true);}}
 function clearInduction(){inductionMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Inducción eliminada');}
 function clearExtubation(){extubationMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Extubación eliminada');}
+function onHoraInduccionChange(){
+  const v=val('f_hora_induccion');
+  inductionMarker = v ? {t:(inductionMarker?inductionMarker.t:timerSecs),time:v} : null;
+  refreshMarkerUI();guardarSesion(true);renderChart();
+}
 function openChartNote(){
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
@@ -2320,6 +2391,7 @@ function exportPDFPortrait(){
   section('L','Farmacología');
   if(val('f_hora_mpa'))kv('L','Hora MPA',val('f_hora_mpa'));
   drugs('L','Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
+  if(val('f_hora_induccion'))kv('L','Hora Inducción',val('f_hora_induccion'));
   drugs('L','Inducción',getDrugs('list-ind').map(drugLine));
   drugs('L','Mantenimiento',getDrugs('list-mant').map(drugLine));
   /* Ajustes intraoperatorios de mantención */
@@ -2532,6 +2604,7 @@ function exportPDFLandscape(){
   section(1,'Farmacología');
   if(val('f_hora_mpa'))kv(1,'Hora MPA',val('f_hora_mpa'));
   drugs(1,'Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
+  if(val('f_hora_induccion'))kv(1,'Hora Inducción',val('f_hora_induccion'));
   drugs(1,'Inducción',getDrugs('list-ind').map(drugLine));
   drugs(1,'Mantenimiento',getDrugs('list-mant').map(drugLine));
   if(ajustesMant && ajustesMant.length){
@@ -3215,6 +3288,8 @@ function init(){
   document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
   document.getElementById('f_asa').addEventListener('change', updateAsaBadge);
   document.getElementById('f_intervalo').addEventListener('change', onIntervalChange);
+  document.getElementById('f_hora_induccion').addEventListener('change', onHoraInduccionChange);
+  document.getElementById('f_hora_inicio').addEventListener('change', renderChart);
 
   /* ── EVENT DELEGATION GLOBAL ──────────────────────────────────────────
      Usa data-action en lugar de onclick para máxima compatibilidad
