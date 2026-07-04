@@ -1629,7 +1629,7 @@ function refreshMantOptions(){
   if(sel){
     const prev=sel.value;
     const mantDrugs=getDrugs('list-mant').map(d=>d.farmaco).filter((v,i,a)=>v&&a.indexOf(v)===i);
-    sel.innerHTML='<option value="">Fármaco en mantención…</option>'+optList(mantDrugs,prev,true);
+    sel.innerHTML='<option value="">Fármaco en mantención…</option>'+optList(mantDrugs,prev);
   }
   /* Sincronizar también el selector de ajustes de mantención */
   refreshAjusteSelects();
@@ -1661,33 +1661,49 @@ function calcPAM(){
 }
 /* renderLiveParams eliminado */
 function renderRegTable(){
+  /* Tabla transpuesta: los parámetros van en filas y cada registro (hora) es una columna */
   const thead=document.getElementById('regThead');
-  thead.innerHTML='<tr><th>Hora</th><th>Min</th>'+
-    params.map(p=>'<th>'+p.label+'</th>').join('')+
-    '<th>Plano</th><th>Nota</th><th></th></tr>';
   const body=document.getElementById('regBody');
   if(registros.length===0){
-    body.innerHTML='<tr><td colspan="'+(params.length+5)+'" style="text-align:center;color:var(--muted);padding:18px">Sin registros aún. Inicia el cronómetro y pulsa "Registrar ahora".</td></tr>';
-  }else{
-    const planoOpts=['Superficial','Quirúrgico ligero','Quirúrgico medio','Quirúrgico profundo'];
-    const valStyle='border:1px solid var(--line);border-radius:4px;width:58px;padding:3px 4px;font-size:12px;text-align:center;font-family:inherit';
-    body.innerHTML=registros.map((r,i)=>
-      '<tr>'+
-      '<td><input type="time" value="'+(r.time||'')+'" data-action="editRegTime" data-idx="'+i+'" '+
-        'style="border:none;background:transparent;font-size:13px;color:var(--teal-d);font-weight:600;'+
-        'width:72px;padding:2px;cursor:pointer;font-family:inherit"></td>'+
-      '<td>'+r.min+'</td>'+
-      params.map(p=>'<td><input type="number" step="any" value="'+(r.vals[p.key]!=null?r.vals[p.key]:'')+'" '+
-        'data-action="editRegVal" data-idx="'+i+'" data-key="'+p.key+'" placeholder="—" style="'+valStyle+'"></td>').join('')+
-      '<td><select data-action="editRegPlano" data-idx="'+i+'" style="border:1px solid var(--line);border-radius:4px;padding:3px 4px;font-size:12px;font-family:inherit">'+
-        '<option value=""'+(r.plano?'':' selected')+'>—</option>'+
-        planoOpts.map(o=>'<option'+(o===r.plano?' selected':'')+'>'+o+'</option>').join('')+
-      '</select></td>'+
-      '<td><input type="text" value="'+(r.nota?String(r.nota).replace(/"/g,'&quot;'):'')+'" data-action="editRegNota" data-idx="'+i+'" placeholder="—" '+
-        'style="border:1px solid var(--line);border-radius:4px;width:130px;padding:3px 4px;font-size:12px;font-family:inherit"></td>'+
-      '<td><button class="del-row" data-action="delReg" data-idx="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td></tr>'
-    ).join('');
+    thead.innerHTML='';
+    body.innerHTML='<tr><td style="text-align:center;color:var(--muted);padding:18px">Sin registros aún. Inicia el cronómetro y pulsa "Registrar ahora".</td></tr>';
+    document.getElementById('regCount').textContent='0 registros';
+    renderObsIntraq();
+    return;
   }
+  const planoOpts=['Superficial','Quirúrgico ligero','Quirúrgico medio','Quirúrgico profundo'];
+  const valStyle='border:1px solid var(--line);border-radius:4px;width:58px;padding:3px 4px;font-size:12px;text-align:center;font-family:inherit';
+  const labelStyle='font-weight:600;color:var(--muted);white-space:nowrap';
+
+  thead.innerHTML='<tr><th>Hora</th>'+
+    registros.map((r,i)=>'<th><input type="time" value="'+(r.time||'')+'" data-action="editRegTime" data-idx="'+i+'" '+
+      'style="border:none;background:transparent;font-size:13px;color:var(--teal-d);font-weight:600;'+
+      'width:72px;padding:2px;cursor:pointer;font-family:inherit;text-align:center"></th>').join('')+
+    '</tr>';
+
+  const rows=[];
+  rows.push('<tr><td style="'+labelStyle+'">Min</td>'+registros.map(r=>'<td>'+r.min+'</td>').join('')+'</tr>');
+  params.forEach(p=>{
+    rows.push('<tr><td style="'+labelStyle+'">'+p.label+'</td>'+
+      registros.map((r,i)=>'<td><input type="number" step="any" value="'+(r.vals[p.key]!=null?r.vals[p.key]:'')+'" '+
+        'data-action="editRegVal" data-idx="'+i+'" data-key="'+p.key+'" placeholder="—" style="'+valStyle+'"></td>').join('')+
+      '</tr>');
+  });
+  rows.push('<tr><td style="'+labelStyle+'">Plano</td>'+
+    registros.map((r,i)=>'<td><select data-action="editRegPlano" data-idx="'+i+'" style="border:1px solid var(--line);border-radius:4px;padding:3px 4px;font-size:12px;font-family:inherit">'+
+      '<option value=""'+(r.plano?'':' selected')+'>—</option>'+
+      planoOpts.map(o=>'<option'+(o===r.plano?' selected':'')+'>'+o+'</option>').join('')+
+    '</select></td>').join('')+
+    '</tr>');
+  rows.push('<tr><td style="'+labelStyle+'">Nota</td>'+
+    registros.map((r,i)=>'<td><input type="text" value="'+(r.nota?String(r.nota).replace(/"/g,'&quot;'):'')+'" data-action="editRegNota" data-idx="'+i+'" placeholder="—" '+
+      'style="border:1px solid var(--line);border-radius:4px;width:130px;padding:3px 4px;font-size:12px;font-family:inherit"></td>').join('')+
+    '</tr>');
+  rows.push('<tr><td></td>'+
+    registros.map((r,i)=>'<td><button class="del-row" data-action="delReg" data-idx="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td>').join('')+
+    '</tr>');
+
+  body.innerHTML=rows.join('');
   document.getElementById('regCount').textContent=registros.length+' registro'+(registros.length===1?'':'s');
   renderObsIntraq();
 }
@@ -2141,8 +2157,9 @@ function refreshMarkerUI(){
   if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;if(hi)hi.value=inductionMarker.time;}
   else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';if(hi)hi.value='';}
   const be=document.getElementById('btn-extubacion'),ee=document.getElementById('ext-edit'),et=document.getElementById('ext-time');
-  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;}
-  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';}
+  const fe=document.getElementById('f_extub');
+  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;if(fe)fe.value=extubationMarker.time;}
+  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';if(fe)fe.value='';}
 }
 function markInduction(){
   if(inductionMarker)return;
@@ -2161,12 +2178,17 @@ function markExtubation(){
   toast('Extubación marcada · '+time);
 }
 function editInductionTime(v){if(inductionMarker&&v){inductionMarker.time=v;refreshMarkerUI();renderChart();guardarSesion(true);}}
-function editExtubationTime(v){if(extubationMarker&&v){extubationMarker.time=v;renderChart();guardarSesion(true);}}
+function editExtubationTime(v){if(extubationMarker&&v){extubationMarker.time=v;refreshMarkerUI();renderChart();guardarSesion(true);}}
 function clearInduction(){inductionMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Inducción eliminada');}
 function clearExtubation(){extubationMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Extubación eliminada');}
 function onHoraInduccionChange(){
   const v=val('f_hora_induccion');
   inductionMarker = v ? {t:(inductionMarker?inductionMarker.t:timerSecs),time:v} : null;
+  refreshMarkerUI();guardarSesion(true);renderChart();
+}
+function onFExtubChange(){
+  const v=val('f_extub');
+  extubationMarker = v ? {t:(extubationMarker?extubationMarker.t:timerSecs),time:v} : null;
   refreshMarkerUI();guardarSesion(true);renderChart();
 }
 function openChartNote(){
@@ -2984,6 +3006,12 @@ function restaurarSesion(estado){
   inductionMarker  = estado.inductionMarker  || null;
   extubationMarker = estado.extubationMarker || null;
   chartNotes       = estado.chartNotes       || [];
+  /* Compatibilidad: sesiones guardadas antes de sincronizar "Extubación" (recuperación)
+     con el marcador del gráfico pueden traer f_extub sin extubationMarker */
+  if(!extubationMarker){
+    const feVal=val('f_extub');
+    if(feVal) extubationMarker={t:0,time:feVal};
+  }
   document.getElementById('timer').textContent = fmt(timerSecs);
   refreshMarkerUI();
 
@@ -3122,25 +3150,22 @@ function refreshAjusteSelects(){
     /* Vasoactivos */
     'Dobutamina','Dopamina','Noradrenalina','Adrenalina','Efedrina','Vasopresina',
     /* Analgesia */
-    'Metadona','Butorfanol','Buprenorfina','Tramadol','Dipirona',
+    'Metadona','Butorfanol','Buprenorfina','Tramadol','Dipirona','Metamizol',
     /* Otros */
-    'Atropina','Glicopirrolato','Dexametasona','Furosemida',
+    'Atropina','Glicopirrolato','Dexametasona (1 mg/mL)','Furosemida',
     'Gluconato de calcio','Bicarbonato de sodio','Sulfato de magnesio',
     'Otro'
   ];
-  /* Primero mostrar los cargados en mantención (orden de uso), luego el resto */
+  /* Todos los fármacos disponibles (los cargados en mantención + el catálogo), en orden alfabético */
   const mantDrugs = getDrugs('list-mant').map(d=>d.farmaco).filter((v,i,a)=>v&&a.indexOf(v)===i);
-  const extras = AJUSTE_CATALOG.filter(f=>!mantDrugs.includes(f));
-  const allMant = mantDrugs.length ? [...mantDrugs, ...extras] : AJUSTE_CATALOG;
+  const allMant = [...new Set([...mantDrugs, ...AJUSTE_CATALOG])];
   const prevFarm = selFarm.value;
-  selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' +
-    allMant.map(f=>'<option'+(f===prevFarm?' selected':'')+'>'+f+'</option>').join('');
+  selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' + optList(allMant,prevFarm);
 
-  /* Unidades: CRI + bolus + inhalatoria */
+  /* Unidades: CRI + bolus + inhalatoria, en orden alfabético */
   const units = [...UNIT_CATALOG.cri, ...UNIT_CATALOG.inhal, ...UNIT_CATALOG.bolus];
   const prevUnit = selUnit.value;
-  selUnit.innerHTML = '<option value="">Unidad…</option>' +
-    units.map(u=>'<option'+(u===prevUnit?' selected':'')+'>'+u+'</option>').join('');
+  selUnit.innerHTML = '<option value="">Unidad…</option>' + optList(units,prevUnit);
 }
 
 /* Tiempo actual del cronómetro en minutos (redondea al entero) */
@@ -3290,6 +3315,7 @@ function init(){
   document.getElementById('f_intervalo').addEventListener('change', onIntervalChange);
   document.getElementById('f_hora_induccion').addEventListener('change', onHoraInduccionChange);
   document.getElementById('f_hora_inicio').addEventListener('change', renderChart);
+  document.getElementById('f_extub').addEventListener('change', onFExtubChange);
 
   /* ── EVENT DELEGATION GLOBAL ──────────────────────────────────────────
      Usa data-action en lugar de onclick para máxima compatibilidad
