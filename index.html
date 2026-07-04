@@ -2308,6 +2308,44 @@ function captureChartImage(){
   }catch(e){return null;}
 }
 
+/* Dibuja la tabla de registro intraoperatorio con los parámetros en filas y la
+   hora en columnas (igual que en pantalla). El PDF tiene ancho fijo, así que si
+   hay más registros de los que caben legibles en una fila, se parte en bloques
+   apilados verticalmente, cada uno con su propio encabezado de horas. */
+function drawRegistroTranspuesto(doc,x,y,width,colors,headFont,bodyFont){
+  const labelW=Math.max(9,width*0.11);
+  const availW=width-labelW;
+  const minColW=8.5;
+  const perBlock=Math.max(3,Math.floor(availW/minColW));
+  const bodyRows=[
+    {label:'Min',get:r=>String(r.min)},
+    ...params.map(p=>({label:p.label.length>6?p.label.slice(0,6):p.label,get:r=>(r.vals[p.key]!=null&&r.vals[p.key]!==''?String(r.vals[p.key]):'—')})),
+    {label:'Plano',get:r=>(r.plano?(r.plano.length>10?r.plano.slice(0,10):r.plano):'—')},
+  ];
+  const rowH=registros.length>24?3.0:(registros.length>14?3.6:4.1);
+  for(let start=0;start<registros.length;start+=perBlock){
+    const block=registros.slice(start,start+perBlock);
+    const colW2=availW/block.length;
+    let yy=y;
+    doc.setFillColor(...colors.soft);doc.rect(x,yy-3.2,width,5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(headFont);doc.setTextColor(...colors.tealD);
+    doc.text('Hora',x+labelW/2,yy,{align:'center'});
+    block.forEach((r,i)=>{doc.text(r.time||String(r.min),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
+    yy+=3;
+    doc.setDrawColor(...colors.teal);doc.setLineWidth(0.3);doc.line(x,yy-1.5,x+width,yy-1.5);
+    bodyRows.forEach((rd,ri)=>{
+      if(ri%2===1){doc.setFillColor(...colors.zebra);doc.rect(x,yy-2.4,width,rowH,'F');}
+      doc.setFont('helvetica','bold');doc.setFontSize(bodyFont);doc.setTextColor(...colors.grayT);
+      doc.text(rd.label,x+1.5,yy);
+      doc.setFont('helvetica','normal');doc.setTextColor(...colors.ink);
+      block.forEach((r,i)=>{doc.text(rd.get(r),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
+      yy+=rowH;
+    });
+    y=yy+2;
+  }
+  return y;
+}
+
 function exportPDF(orient){
   /* dispatcher: elige orientación */
   if(orient===undefined){orient=(document.getElementById('f_orient')||{}).value||'portrait';}
@@ -2453,36 +2491,12 @@ function exportPDFPortrait(){
     }
   }
 
-  /* Tabla de registro intraoperatorio */
+  /* Tabla de registro intraoperatorio — parámetros en filas, hora en columnas */
   if(registros.length){
     section('R','Registro intraoperatorio');
-    /* columnas dinámicas dentro de la columna derecha */
-    const baseCols=[{h:'Min',key:'__min',w:7}];
-    const pCols=params.map(p=>({h:p.label.length>5?p.label.slice(0,5):p.label,key:p.key}));
-    /* repartir ancho */
-    const nCols=baseCols.length+pCols.length;
-    const wEach=(colW-baseCols[0].w)/pCols.length;
-    pCols.forEach(c=>c.w=wEach);
-    const cols=[...baseCols,...pCols];
-    let x=Rx,y=yR;
-    /* header */
-    doc.setFillColor(...soft);doc.rect(Rx,y-3.2,colW,5,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(5.6);doc.setTextColor(...tealD);
-    cols.forEach(c=>{doc.text(String(c.h),x+c.w/2,y,{align:'center'});x+=c.w;});
-    y+=3;
-    doc.setDrawColor(...teal);doc.setLineWidth(0.3);doc.line(Rx,y-1.5,Rx+colW,y-1.5);
-    doc.setFont('helvetica','normal');doc.setFontSize(5.6);doc.setTextColor(...ink);
-    /* filas — fuente adaptativa si hay muchos registros */
-    let rowH=registros.length>22?2.9:(registros.length>14?3.4:3.9);
-    if(registros.length>34)rowH=2.5;
-    registros.forEach((r,ri)=>{
-      if(ri%2===1){doc.setFillColor(...zebra);doc.rect(Rx,y-2.4,colW,rowH,'F');}
-      x=Rx;
-      doc.text(r.time||String(r.min),x+cols[0].w/2,y,{align:'center'});x+=cols[0].w;
-      pCols.forEach((c)=>{const v=r.vals[c.key]||'—';doc.text(String(v),x+c.w/2,y,{align:'center'});x+=c.w;});
-      y+=rowH;
-    });
-    yR=y+2;
+    const colors={teal,tealD,grayT,ink,soft,zebra};
+    let y=drawRegistroTranspuesto(doc,Rx,yR,colW,colors,5.6,5.6);
+    yR=y;
     /* notas: solo registros con nota escrita (evita repetir el plano en cada fila) */
     const notas=registros.filter(r=>r.nota);
     if(notas.length){
@@ -2663,29 +2677,9 @@ function exportPDFLandscape(){
       yc[2]+=imgH+3;
     }
     section(2,'Registro intraoperatorio');
-    const x=colX[2];let y=yc[2];
-    const baseCols=[{h:'Min',key:'__min',w:8}];
-    const pCols=params.map(p=>({h:p.label.length>5?p.label.slice(0,5):p.label,key:p.key}));
-    const wEach=(cw-baseCols[0].w)/pCols.length;
-    pCols.forEach(c=>c.w=wEach);
-    const cols=[...baseCols,...pCols];
-    let cx=x;
-    doc.setFillColor(...soft);doc.rect(x,y-3.4,cw,5.2,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(6.2);doc.setTextColor(...tealD);
-    cols.forEach(c=>{doc.text(String(c.h),cx+c.w/2,y,{align:'center'});cx+=c.w;});
-    y+=3.2;
-    doc.setDrawColor(...teal);doc.setLineWidth(0.3);doc.line(x,y-1.6,x+cw,y-1.6);
-    doc.setFont('helvetica','normal');doc.setFontSize(6.2);doc.setTextColor(...ink);
-    let rowH=registros.length>20?3.0:(registros.length>13?3.5:4.0);
-    if(registros.length>30)rowH=2.6;
-    registros.forEach((r,ri)=>{
-      if(ri%2===1){doc.setFillColor(...zebra);doc.rect(x,y-2.5,cw,rowH,'F');}
-      cx=x;
-      doc.text(r.time||String(r.min),cx+cols[0].w/2,y,{align:'center'});cx+=cols[0].w;
-      pCols.forEach((c)=>{const v=r.vals[c.key]||'—';doc.text(String(v),cx+c.w/2,y,{align:'center'});cx+=c.w;});
-      y+=rowH;
-    });
-    yc[2]=y+2;
+    const x=colX[2];
+    const colors2={teal,tealD,grayT,ink,soft,zebra};
+    yc[2]=drawRegistroTranspuesto(doc,x,yc[2],cw,colors2,6.2,6.2);
     const notas=registros.filter(r=>r.nota);
     if(notas.length){
       doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...grayT);
