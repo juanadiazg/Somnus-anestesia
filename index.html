@@ -98,13 +98,15 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 #tab-preop:checked~.tabs~.content #p-preop,
 #tab-tecnica:checked~.tabs~.content #p-tecnica,
 #tab-intra:checked~.tabs~.content #p-intra,
-#tab-recup:checked~.tabs~.content #p-recup{display:block}
+#tab-recup:checked~.tabs~.content #p-recup,
+#tab-vivo:checked~.tabs~.content #p-vivo{display:block}
 /* Resaltar tab activo */
 #tab-paciente:checked~.tabs label[for="tab-paciente"],
 #tab-preop:checked~.tabs label[for="tab-preop"],
 #tab-tecnica:checked~.tabs label[for="tab-tecnica"],
 #tab-intra:checked~.tabs label[for="tab-intra"],
-#tab-recup:checked~.tabs label[for="tab-recup"]{color:var(--teal-d);border-bottom-color:var(--teal)}
+#tab-recup:checked~.tabs label[for="tab-recup"],
+#tab-vivo:checked~.tabs label[for="tab-vivo"]{color:var(--teal-d);border-bottom-color:var(--teal)}
 
 .card{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -178,16 +180,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .countdown.due{background:var(--red-l);color:var(--red);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 
-/* LIVE PARAMS */
-
-
-.pcard 
-.pcard 
-.pcard 
-.pcard.alert{border-color:var(--red-b);background:var(--red-l)}
-.pcard.alert .pv{color:var(--red)}
-.pcard.warn{border-color:#e8c878;background:var(--amber-l)}
-.pcard.warn .pv{color:var(--amber)}
+/* Signos vitales en vivo: los estilos por estado (ok/warn/crit) se aplican
+   con clases de Tailwind directamente en JS — ver Vista en vivo. */
 
 /* REGISTER INPUTS */
 .reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-bottom:12px}
@@ -316,6 +310,10 @@ input[type=date],select,textarea{
 @media(max-width:480px){.topbar-actions .guardado-text{display:none}}
 
 </style>
+<style id="tw-live">
+/* Tailwind CSS (prefijo tw-, sin preflight) compilado offline para la Vista en vivo */
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }.tw-mb-2\.5{margin-bottom:.625rem}.tw-mb-3{margin-bottom:.75rem}.tw-mb-3\.5{margin-bottom:.875rem}.tw-ml-auto{margin-left:auto}.tw-mt-0\.5{margin-top:.125rem}.tw-mt-1{margin-top:.25rem}.tw-inline-block{display:inline-block}.tw-flex{display:flex}.tw-inline-flex{display:inline-flex}.tw-grid{display:grid}.tw-hidden{display:none}.tw-h-2\.5{height:.625rem}.tw-h-3\.5{height:.875rem}.tw-min-h-\[44px\]{min-height:44px}.tw-w-2\.5{width:.625rem}.tw-w-28{width:7rem}.tw-w-3\.5{width:.875rem}.tw-w-full{width:100%}@keyframes tw-pulse{50%{opacity:.5}}.tw-animate-pulse{animation:tw-pulse 2s cubic-bezier(.4,0,.6,1) infinite}.tw-cursor-pointer{cursor:pointer}.tw-grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.tw-flex-col{flex-direction:column}.tw-flex-wrap{flex-wrap:wrap}.tw-items-start{align-items:flex-start}.tw-items-center{align-items:center}.tw-justify-between{justify-content:space-between}.tw-gap-1{gap:.25rem}.tw-gap-1\.5{gap:.375rem}.tw-gap-2{gap:.5rem}.tw-gap-2\.5{gap:.625rem}.tw-gap-3{gap:.75rem}.tw-gap-4{gap:1rem}.tw-divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px*(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px*var(--tw-divide-y-reverse))}.tw-divide-slate-100>:not([hidden])~:not([hidden]){--tw-divide-opacity:1;border-color:rgb(241 245 249/var(--tw-divide-opacity,1))}.tw-whitespace-nowrap{white-space:nowrap}.tw-rounded{border-radius:.25rem}.tw-rounded-2xl{border-radius:1rem}.tw-rounded-full{border-radius:9999px}.tw-rounded-lg{border-radius:.5rem}.tw-rounded-xl{border-radius:.75rem}.tw-border{border-width:1px}.tw-border-0{border-width:0}.tw-border-2{border-width:2px}.tw-border-dashed{border-style:dashed}.tw-border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.tw-border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}.tw-border-red-400{--tw-border-opacity:1;border-color:rgb(248 113 113/var(--tw-border-opacity,1))}.tw-border-rose-200{--tw-border-opacity:1;border-color:rgb(254 205 211/var(--tw-border-opacity,1))}.tw-border-sky-200{--tw-border-opacity:1;border-color:rgb(186 230 253/var(--tw-border-opacity,1))}.tw-border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249/var(--tw-border-opacity,1))}.tw-border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.tw-border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.tw-bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.tw-bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}.tw-bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11/var(--tw-bg-opacity,1))}.tw-bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}.tw-bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.tw-bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.tw-bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.tw-bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}.tw-bg-sky-50{--tw-bg-opacity:1;background-color:rgb(240 249 255/var(--tw-bg-opacity,1))}.tw-bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.tw-bg-transparent{background-color:transparent}.tw-bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.tw-p-0{padding:0}.tw-p-3{padding:.75rem}.tw-p-4{padding:1rem}.tw-px-1\.5{padding-left:.375rem;padding-right:.375rem}.tw-px-2\.5{padding-left:.625rem;padding-right:.625rem}.tw-px-3{padding-left:.75rem;padding-right:.75rem}.tw-px-3\.5{padding-left:.875rem;padding-right:.875rem}.tw-px-4{padding-left:1rem;padding-right:1rem}.tw-py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.tw-py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.tw-py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.tw-py-5{padding-top:1.25rem;padding-bottom:1.25rem}.tw-text-center{text-align:center}.tw-text-2xl{font-size:1.5rem;line-height:2rem}.tw-text-\[10px\]{font-size:10px}.tw-text-\[11px\]{font-size:11px}.tw-text-base{font-size:1rem;line-height:1.5rem}.tw-text-lg{font-size:1.125rem;line-height:1.75rem}.tw-text-sm{font-size:.875rem;line-height:1.25rem}.tw-text-xs{font-size:.75rem;line-height:1rem}.tw-font-bold{font-weight:700}.tw-font-extrabold{font-weight:800}.tw-font-medium{font-weight:500}.tw-font-normal{font-weight:400}.tw-font-semibold{font-weight:600}.tw-uppercase{text-transform:uppercase}.tw-normal-case{text-transform:none}.tw-tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction)}.tw-leading-snug{line-height:1.375}.tw-tracking-wide{letter-spacing:.025em}.tw-text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.tw-text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}.tw-text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.tw-text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.tw-text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}.tw-text-red-700{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.tw-text-rose-700{--tw-text-opacity:1;color:rgb(190 18 60/var(--tw-text-opacity,1))}.tw-text-sky-700{--tw-text-opacity:1;color:rgb(3 105 161/var(--tw-text-opacity,1))}.tw-text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.tw-text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.tw-text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.tw-text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.tw-shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.tw-outline-none{outline:2px solid transparent;outline-offset:2px}.tw-transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.hover\:tw-bg-emerald-100:hover{--tw-bg-opacity:1;background-color:rgb(209 250 229/var(--tw-bg-opacity,1))}.hover\:tw-bg-rose-100:hover{--tw-bg-opacity:1;background-color:rgb(255 228 230/var(--tw-bg-opacity,1))}.hover\:tw-bg-sky-100:hover{--tw-bg-opacity:1;background-color:rgb(224 242 254/var(--tw-bg-opacity,1))}.hover\:tw-bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.hover\:tw-text-red-500:hover{--tw-text-opacity:1;color:rgb(239 68 68/var(--tw-text-opacity,1))}.focus\:tw-border-emerald-500:focus{--tw-border-opacity:1;border-color:rgb(16 185 129/var(--tw-border-opacity,1))}.focus\:tw-bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.focus\:tw-ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.focus\:tw-ring-amber-300:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(252 211 77/var(--tw-ring-opacity,1))}.focus\:tw-ring-emerald-100:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(209 250 229/var(--tw-ring-opacity,1))}.focus\:tw-ring-emerald-300:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(110 231 183/var(--tw-ring-opacity,1))}.focus\:tw-ring-red-400:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(248 113 113/var(--tw-ring-opacity,1))}.active\:tw-scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.disabled\:tw-cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:tw-opacity-40:disabled{opacity:.4}@media (min-width:640px){.sm\:tw-grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.sm\:tw-grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}@media (min-width:1024px){.lg\:tw-grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -365,6 +363,7 @@ input[type=date],select,textarea{
 <input type="radio" name="tab" id="tab-tecnica" class="tab-radio" hidden>
 <input type="radio" name="tab" id="tab-intra" class="tab-radio" hidden>
 <input type="radio" name="tab" id="tab-recup" class="tab-radio" hidden>
+<input type="radio" name="tab" id="tab-vivo" class="tab-radio" hidden>
 
 <div class="tabs" id="tabs">
   <label class="tab" for="tab-paciente">
@@ -381,6 +380,9 @@ input[type=date],select,textarea{
   </label>
   <label class="tab" for="tab-recup">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 8.5C20 5.5 17.5 4 15.5 4 13.8 4 12 5.5 12 5.5S10.2 4 8.5 4C6.5 4 4 5.5 4 8.5c0 4 8 11 8 11s8-7 8-11z"/></svg>Recuperación
+  </label>
+  <label class="tab" for="tab-vivo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>Vista en vivo
   </label>
 </div>
 
@@ -610,25 +612,13 @@ input[type=date],select,textarea{
   </div>
 
 
-  <div class="card">
-    <div class="card-head">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-      <span class="card-title">Registrar parámetros</span>
-      <button class="btn btn-sm" style="margin-left:auto" data-action="openAddParam">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Parámetro nuevo
-      </button>
+  <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--teal);flex-shrink:0"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>
+    <div style="flex:1;min-width:180px">
+      <div style="font-weight:600;color:var(--ink)">El registro de constantes se mudó a "Vista en vivo"</div>
+      <p class="hint" style="margin-top:2px">Ahí encontrás la grilla de parámetros con alerta de color, la calculadora de dosis por peso y los accesos rápidos de inducción/extubación.</p>
     </div>
-    <div class="reg-grid" id="regGrid"></div>
-    <div class="grid g2" style="margin-bottom:12px">
-      <div class="field"><label>Plano anestésico</label>
-        <select id="r_plano"><option value="">—</option><option>Superficial</option><option>Quirúrgico ligero</option><option>Quirúrgico medio</option><option>Quirúrgico profundo</option></select>
-      </div>
-      <div class="field"><label>Nota / evento</label><input id="r_nota" placeholder="Ej: inicio cirugía, bolo rescate, despertar..."></div>
-    </div>
-    <div style="display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn btn-primary" data-action="registrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Registrar ahora</button>
-      <button class="btn btn-sm" data-action="limpiarReg">Limpiar campos</button>
-    </div>
+    <label for="tab-vivo" class="btn btn-primary" style="cursor:pointer">Ir a Vista en vivo</label>
   </div>
 
 
@@ -807,6 +797,76 @@ input[type=date],select,textarea{
     <div id="list-postop"></div>
     <button class="btn btn-sm" data-action="addDrug" data-section="postop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Agregar fármaco</button>
     <div class="field" style="margin-top:13px"><label>Recomendaciones para el propietario / notas finales</label><textarea id="f_recom" placeholder="Indicaciones, controles, signos de alarma..."></textarea></div>
+  </div>
+</div>
+
+<!-- PANEL VISTA EN VIVO -->
+<div class="panel" id="p-vivo">
+  <div class="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200 tw-shadow-sm tw-p-4 tw-mb-3.5 tw-flex tw-items-center tw-gap-4 tw-flex-wrap">
+    <div class="tw-flex tw-items-center tw-gap-2 tw-text-sm">
+      <span class="tw-font-semibold tw-text-slate-700" id="vivo-hdr-nombre">—</span>
+      <span class="tw-text-slate-300">·</span>
+      <span class="tw-text-slate-500" id="vivo-hdr-especie">—</span>
+    </div>
+    <label class="tw-flex tw-flex-col tw-gap-1 tw-ml-auto">
+      <span class="tw-text-[11px] tw-font-medium tw-text-slate-400">Peso (kg)</span>
+      <input type="number" step="0.01" id="vivo-peso" placeholder="0.0"
+        class="tw-min-h-[44px] tw-w-28 tw-text-base tw-font-semibold tw-tabular-nums tw-rounded-xl tw-border tw-border-slate-300 tw-bg-slate-50 focus:tw-bg-white focus:tw-border-emerald-500 focus:tw-ring-2 focus:tw-ring-emerald-100 tw-px-3 tw-outline-none tw-transition">
+    </label>
+    <div id="vivo-pending-badge" class="tw-hidden tw-items-center tw-gap-1.5 tw-bg-amber-100 tw-text-amber-800 tw-text-xs tw-font-semibold tw-px-2.5 tw-py-1.5 tw-rounded-full tw-animate-pulse">
+      <svg viewBox="0 0 24 24" class="tw-w-3.5 tw-h-3.5" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Falta registrar
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      <span class="card-title">Monitoreo en tiempo real</span>
+      <button class="btn btn-sm" style="margin-left:auto" data-action="openAddParam">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Parámetro nuevo
+      </button>
+    </div>
+    <div class="tw-flex tw-items-center tw-gap-3 tw-text-xs tw-text-slate-400 tw-mb-2.5">
+      <span class="tw-inline-flex tw-items-center tw-gap-1"><span class="tw-w-2.5 tw-h-2.5 tw-rounded-full tw-bg-emerald-500"></span>Normal</span>
+      <span class="tw-inline-flex tw-items-center tw-gap-1"><span class="tw-w-2.5 tw-h-2.5 tw-rounded-full tw-bg-amber-500"></span>Atención</span>
+      <span class="tw-inline-flex tw-items-center tw-gap-1"><span class="tw-w-2.5 tw-h-2.5 tw-rounded-full tw-bg-red-500"></span>Crítico</span>
+    </div>
+    <div class="tw-grid tw-grid-cols-2 sm:tw-grid-cols-3 lg:tw-grid-cols-5 tw-gap-2.5" id="regGrid"></div>
+    <div class="grid g2" style="margin:12px 0">
+      <div class="field"><label>Plano anestésico</label>
+        <select id="r_plano"><option value="">—</option><option>Superficial</option><option>Quirúrgico ligero</option><option>Quirúrgico medio</option><option>Quirúrgico profundo</option></select>
+      </div>
+      <div class="field"><label>Nota / evento</label><input id="r_nota" placeholder="Ej: inicio cirugía, bolo rescate, despertar..."></div>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-primary" data-action="registrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Registrar ahora</button>
+      <button class="btn btn-sm" data-action="limpiarReg">Limpiar campos</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+      <span class="card-title">Datos del paciente · dosis por peso</span>
+    </div>
+    <p class="hint" style="margin-bottom:9px">Calculado con el peso de arriba. Las fórmulas sin confirmar quedan marcadas como "Pendiente" en vez de mostrar un número inventado.</p>
+    <div class="tw-grid tw-grid-cols-2 sm:tw-grid-cols-4 tw-gap-2.5" id="vivo-dose-calc"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></svg>
+      <span class="card-title">Registro de eventos / fármacos</span>
+    </div>
+    <div class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-3">
+      <button id="qbtn-induccion" data-action="markInduction" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-emerald-50 tw-text-emerald-700 tw-border tw-border-emerald-200 tw-font-semibold tw-text-sm hover:tw-bg-emerald-100 active:tw-scale-95 tw-transition disabled:tw-opacity-40 disabled:tw-cursor-not-allowed">Inducción</button>
+      <button id="qbtn-extubacion" data-action="markExtubation" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-rose-50 tw-text-rose-700 tw-border tw-border-rose-200 tw-font-semibold tw-text-sm hover:tw-bg-rose-100 active:tw-scale-95 tw-transition disabled:tw-opacity-40 disabled:tw-cursor-not-allowed">Extubación</button>
+      <button data-action="quickNota" data-text="Bolo de rescate" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-sky-50 tw-text-sky-700 tw-border tw-border-sky-200 tw-font-semibold tw-text-sm hover:tw-bg-sky-100 active:tw-scale-95 tw-transition">Bolo de rescate</button>
+      <button data-action="quickNota" data-text="Cambio de plano" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-border tw-border-slate-200 tw-font-semibold tw-text-sm hover:tw-bg-slate-100 active:tw-scale-95 tw-transition">Cambio de plano</button>
+    </div>
+    <p class="hint" style="margin-bottom:8px">Los botones de arriba quedan registrados de inmediato. Para un fármaco puntual, usá la nota y presioná "Registrar ahora" en Monitoreo.</p>
+    <div id="vivo-log" class="tw-rounded-xl tw-border tw-border-slate-200 tw-divide-y tw-divide-slate-100"></div>
   </div>
 </div>
 
@@ -1395,6 +1455,20 @@ function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;retu
 function p2(n){return String(n).padStart(2,'0');}
 
 /* ============ COUNTDOWN INTERVALO ============ */
+/* Insignia persistente de "falta registrar": a diferencia del pulso de 4s
+   del contador, esta no se oculta sola — solo cuando de verdad se registra. */
+const Reminder=(()=>{
+  function markPending(){
+    const b=document.getElementById('vivo-pending-badge');
+    if(b){ b.classList.remove('tw-hidden'); b.classList.add('tw-flex'); }
+  }
+  function reset(){
+    const b=document.getElementById('vivo-pending-badge');
+    if(b){ b.classList.add('tw-hidden'); b.classList.remove('tw-flex'); }
+  }
+  return {markPending,reset};
+})();
+
 function startCountdown(){
   clearInterval(cdInt);
   const iv=document.getElementById('f_intervalo').value;
@@ -1410,6 +1484,7 @@ function startCountdown(){
       document.getElementById('countdown').classList.add('due');
       playAlarm('reminder');
       toast('⏱ Momento de registrar parámetros');
+      Reminder.markPending();
       setTimeout(()=>document.getElementById('countdown').classList.remove('due'),4000);
     }
   },1000);
@@ -1423,7 +1498,61 @@ function toast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);
 }
-function onPesoChange(){/* reservado para cálculo de dosis futuro */}
+/* ============ CALCULADORA DE DOSIS POR PESO ============
+   Solo muestra una cifra cuando la fórmula está confirmada. Si falta,
+   se marca "Pendiente" en vez de inventar un número — el equipo
+   veterinario la completa después en FORMULAS. */
+const DoseCalculator=(()=>{
+  const FORMULAS=[
+    {phase:'Mantención', label:'Fluidoterapia',   unit:'mL/h',    calc:w=>5*w, note:'5 mL/kg/h'},
+    {phase:'Mantención', label:'Propofol (CRI)',  unit:'mg/kg/h', calc:null},
+    {phase:'Mantención', label:'Fentanilo (CRI)', unit:'µg/kg/h', calc:null},
+    {phase:'Inducción',  label:'Propofol',        unit:'mg',      calc:null},
+  ];
+  function cardHTML(f,peso){
+    const value=(typeof f.calc==='function' && peso>0) ? f.calc(peso) : null;
+    const pendiente=value==null;
+    const cifra=pendiente ? '' : (value<1 ? value.toFixed(2) : value.toFixed(1));
+    return '<div class="tw-rounded-xl tw-p-3 tw-bg-slate-50 '+(pendiente?'tw-border-2 tw-border-dashed tw-border-slate-200':'tw-border tw-border-slate-200')+'">'+
+      '<div class="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-wide tw-text-slate-400">'+f.phase+'</div>'+
+      '<div class="tw-text-xs tw-text-slate-500 tw-font-medium tw-leading-snug tw-mt-0.5">'+f.label+'</div>'+
+      '<div class="tw-mt-1">'+(pendiente
+        ? '<span class="tw-text-lg tw-font-bold tw-text-slate-300">—</span>'
+        : '<span class="tw-text-lg tw-font-bold tw-text-emerald-700 tw-tabular-nums">'+cifra+'</span> <span class="tw-text-xs tw-font-medium tw-text-slate-400">'+f.unit+'</span>')+'</div>'+
+      (pendiente
+        ? '<span class="tw-inline-block tw-mt-1 tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-wide tw-text-amber-600 tw-bg-amber-50 tw-px-1.5 tw-py-0.5 tw-rounded">Pendiente de validar</span>'
+        : '<span class="tw-inline-block tw-mt-1 tw-text-[10px] tw-text-slate-400">'+f.note+'</span>')+
+      '</div>';
+  }
+  function render(peso){
+    const el=document.getElementById('vivo-dose-calc');
+    if(el) el.innerHTML=FORMULAS.map(f=>cardHTML(f,peso)).join('');
+  }
+  return {render};
+})();
+
+/* ============ VISTA EN VIVO: encabezado + peso sincronizado ============ */
+function refreshVivoHeader(){
+  const nombre=document.getElementById('vivo-hdr-nombre');
+  const especie=document.getElementById('vivo-hdr-especie');
+  if(nombre) nombre.textContent=val('f_paciente')||'—';
+  if(especie) especie.textContent=val('f_especie')||'—';
+}
+function onPesoChange(){
+  const peso=parseFloat(val('f_peso'))||0;
+  refreshVivoHeader();
+  DoseCalculator.render(peso);
+  const lv=document.getElementById('vivo-peso');
+  if(lv && lv.value!==val('f_peso')) lv.value=val('f_peso');
+}
+function onVivoPesoChange(){
+  const real=document.getElementById('f_peso');
+  const lv=document.getElementById('vivo-peso');
+  if(real && lv && real.value!==lv.value){
+    real.value=lv.value;
+    real.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+}
 
 /* ============ ASA BADGE ============ */
 function updateAsaBadge(){
@@ -1636,18 +1765,72 @@ function refreshMantOptions(){
 }
 
 /* ============ PARÁMETROS DINÁMICOS ============ */
+/* ============ MONITOREO EN TIEMPO REAL: color por estado ============
+   Reemplaza el antiguo sistema de alerta (pcard/pv_/pc_) que quedó
+   huérfano tras eliminar renderLiveParams(): ahora el propio input de
+   cada parámetro cambia de color en vivo según su rango normal. */
+const VITAL_TILE_STYLES={
+  neutral:{tile:'tw-border-slate-200 tw-bg-white',      input:'tw-text-slate-700 focus:tw-ring-emerald-300'},
+  ok:     {tile:'tw-border-slate-100 tw-bg-emerald-50', input:'tw-text-emerald-700 focus:tw-ring-emerald-300'},
+  warn:   {tile:'tw-border-amber-300 tw-bg-amber-50',   input:'tw-text-amber-700 focus:tw-ring-amber-300'},
+  crit:   {tile:'tw-border-red-400 tw-bg-red-50',       input:'tw-text-red-700 focus:tw-ring-red-400'},
+};
+const VITAL_TILE_BASE='tw-vital-tile tw-rounded-2xl tw-border-2 tw-p-3 tw-flex tw-flex-col tw-gap-1 tw-transition';
+const VITAL_INPUT_BASE='tw-vital-input tw-w-full tw-bg-transparent tw-border-0 tw-p-0 tw-text-2xl tw-font-extrabold tw-tabular-nums tw-outline-none focus:tw-ring-2 tw-rounded-lg';
+
+/* Devuelve 'ok'/'warn'/'crit', o null si el parámetro no tiene rango definido
+   (ej. parámetros custom agregados por el usuario) o no hay valor cargado. */
+function estadoParametro(p,valor){
+  if(p.lo==null || p.hi==null) return null;
+  if(valor===''||valor==null) return null;
+  const v=parseFloat(valor);
+  if(isNaN(v)) return null;
+  if(p.lowOnly) return v<p.lo ? 'crit' : 'ok';
+  const span=p.hi-p.lo, warnLo=p.lo+span*0.12, warnHi=p.hi-span*0.12;
+  if(v<p.lo || v>p.hi) return 'crit';
+  if(v<warnLo || v>warnHi) return 'warn';
+  return 'ok';
+}
+
 function renderRegGrid(){
   const grid=document.getElementById('regGrid');
   grid.innerHTML=params.map(p=>{
-    const rm=p.fixed?'':'<span class="rm" title="Quitar parámetro" data-action="removeParam" data-key="'+p.key+'">✕</span>';
-    const cls=p.fixed?'reg-field':'reg-field custom';
-    const auto=p.key==='pam'?' readonly title="Se calcula automáticamente desde PAS y PAD" style="background:var(--teal-l);cursor:not-allowed"':'';
+    const rm=p.fixed?'':'<button type="button" class="tw-text-slate-300 hover:tw-text-red-500 tw-transition tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer" title="Quitar parámetro" data-action="removeParam" data-key="'+p.key+'">✕</button>';
+    const auto=p.key==='pam';
     const oninput=(p.key==='pas'||p.key==='pad')?' oninput="calcPAM()"':'';
-    const autoTag=p.key==='pam'?' <span style="font-weight:400;color:var(--teal-d);font-size:10px">(auto)</span>':'';
-    return '<div class="'+cls+'"><label>'+p.label+(p.unit?' ('+p.unit+')':'')+autoTag+rm+'</label>'+
-           '<input type="number" step="any" id="r_'+p.key+'" placeholder="—"'+auto+oninput+'></div>';
+    const autoTag=auto?' <span class="tw-font-normal tw-normal-case tw-text-emerald-600">(auto)</span>':'';
+    return '<div class="'+VITAL_TILE_BASE+' '+VITAL_TILE_STYLES.neutral.tile+'" data-tile-key="'+p.key+'">'+
+           '<div class="tw-flex tw-items-center tw-justify-between tw-gap-1">'+
+           '<span class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">'+p.label+(p.unit?' <span class="tw-font-normal tw-normal-case tw-text-slate-400">('+p.unit+')</span>':'')+autoTag+'</span>'+
+           rm+'</div>'+
+           '<input type="number" step="any" inputmode="decimal" id="r_'+p.key+'" data-key="'+p.key+'" placeholder="—" class="'+VITAL_INPUT_BASE+' '+VITAL_TILE_STYLES.neutral.input+'"'+
+           (auto?' readonly title="Se calcula automáticamente desde PAS y PAD"':'')+oninput+'>'+
+           '</div>';
   }).join('');
+  grid.querySelectorAll('.tw-vital-input').forEach(input=>{
+    input.addEventListener('input',()=>onRegInputChange(input));
+  });
 }
+
+/* Validación crítica en vivo: recalcula el estado en cada tecla y repinta
+   solo el tile afectado (sin reconstruir toda la grilla). Si el valor
+   recién entra en zona crítica, además avisa con toast + sonido. */
+function onRegInputChange(input){
+  const p=params.find(x=>x.key===input.dataset.key);
+  if(!p) return;
+  const tile=input.closest('.tw-vital-tile');
+  const prevStatus=tile.dataset.status||'neutral';
+  const st=estadoParametro(p,input.value)||'neutral';
+  const s=VITAL_TILE_STYLES[st];
+  tile.className=VITAL_TILE_BASE+' '+s.tile;
+  tile.dataset.status=st;
+  input.className=VITAL_INPUT_BASE+' '+s.input;
+  if(st==='crit' && prevStatus!=='crit'){
+    toast('⚠ '+p.label+' fuera de rango crítico');
+    playAlarm('alert');
+  }
+}
+
 /* PAM = PAD + 1/3 (PAS − PAD) */
 function calcPAM(){
   const pas=parseFloat(val('r_pas')), pad=parseFloat(val('r_pad'));
@@ -1658,8 +1841,8 @@ function calcPAM(){
   }else{
     out.value='';
   }
+  onRegInputChange(out);
 }
-/* renderLiveParams eliminado */
 function renderRegTable(){
   /* Tabla transpuesta: los parámetros van en filas y cada registro (hora) es una columna */
   const thead=document.getElementById('regThead');
@@ -1722,6 +1905,33 @@ function renderObsIntraq(){
       '<span style="font-weight:600;color:var(--teal-d)">'+parts.join(' · ')+'</span> — '+
       '<span>'+String(r.nota).replace(/</g,'&lt;')+'</span></div>';
   }).join('');
+  renderVivoLog();
+}
+
+/* Vista en vivo · últimos eventos (mismos registros, sin duplicar datos) */
+function renderVivoLog(){
+  const el=document.getElementById('vivo-log');
+  if(!el) return;
+  const recientes=registros.filter(r=>r.nota).slice(-6).reverse();
+  if(!recientes.length){
+    el.innerHTML='<div class="tw-text-center tw-text-slate-400 tw-text-sm tw-py-5">Sin eventos registrados todavía.</div>';
+    return;
+  }
+  el.innerHTML=recientes.map(r=>{
+    const hora=r.time||(r.min+"'");
+    return '<div class="tw-flex tw-items-start tw-gap-2.5 tw-px-3.5 tw-py-2.5">'+
+      '<span class="tw-font-semibold tw-text-emerald-700 tw-tabular-nums tw-whitespace-nowrap tw-text-sm">'+hora+'</span>'+
+      '<span class="tw-text-slate-700 tw-text-sm">'+String(r.nota).replace(/</g,'&lt;')+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+/* Accesos rápidos de Vista en vivo: prellenan la nota y registran de inmediato */
+function quickNota(texto){
+  if(!texto) return;
+  const nt=document.getElementById('r_nota');
+  if(nt) nt.value=texto;
+  registrar();
 }
 
 /* ============ AGREGAR PARÁMETRO NUEVO ============ */
@@ -1774,32 +1984,17 @@ function registrar(){
   const plano=val('r_plano');const nota=val('r_nota');
   if(!any && !plano && !nota){toast('Ingresa al menos un valor');return;}
   registros.push({time,min,vals,plano,nota,t:timerSecs});
-  /* actualizar monitor en vivo + alertas */
-  let anyAlert=false;
-  params.forEach(p=>{
-    if(vals[p.key]){
-      const pv=document.getElementById('pv_'+p.key);if(pv)pv.textContent=vals[p.key];
-      if(checkAlert(p,parseFloat(vals[p.key])))anyAlert=true;
-    }
-  });
-  if(anyAlert)playAlarm('alert');
+  /* Nota: la alerta de valor fuera de rango ya se dispara en vivo, tecla a
+     tecla, desde onRegInputChange() — no hace falta repetirla acá. */
   renderRegTable();
   renderChart();
   limpiarReg();
   guardarSesion(true);
+  Reminder.reset();
   if(timerRunning && document.getElementById('f_intervalo').value!=='manual'){
     cdRemaining=parseInt(document.getElementById('f_intervalo').value);
   }
   toast('✓ Registro guardado · '+time);
-}
-function checkAlert(p,v){
-  const card=document.getElementById('pc_'+p.key);
-  if(!card||isNaN(v)||p.lo===null||p.lo===undefined){if(card)card.classList.remove('alert','warn');return false;}
-  card.classList.remove('alert','warn');
-  let out=false;
-  if(p.lowOnly){if(v<p.lo){card.classList.add('alert');out=true;}}
-  else if(v<p.lo||v>p.hi){card.classList.add('alert');out=true;}
-  return out;
 }
 function limpiarReg(){
   params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el)el.value='';});
@@ -2154,12 +2349,14 @@ window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extu
 function refreshMarkerUI(){
   const bi=document.getElementById('btn-induccion'),ie=document.getElementById('ind-edit'),it=document.getElementById('ind-time');
   const hi=document.getElementById('f_hora_induccion');
-  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;if(hi)hi.value=inductionMarker.time;}
-  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';if(hi)hi.value='';}
+  const qi=document.getElementById('qbtn-induccion');
+  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;if(hi)hi.value=inductionMarker.time;if(qi)qi.disabled=true;}
+  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';if(hi)hi.value='';if(qi)qi.disabled=false;}
   const be=document.getElementById('btn-extubacion'),ee=document.getElementById('ext-edit'),et=document.getElementById('ext-time');
   const fe=document.getElementById('f_extub');
-  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;if(fe)fe.value=extubationMarker.time;}
-  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';if(fe)fe.value='';}
+  const qe=document.getElementById('qbtn-extubacion');
+  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;if(fe)fe.value=extubationMarker.time;if(qe)qe.disabled=true;}
+  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';if(fe)fe.value='';if(qe)qe.disabled=false;}
 }
 function markInduction(){
   if(inductionMarker)return;
@@ -3311,6 +3508,14 @@ function init(){
   document.getElementById('f_hora_inicio').addEventListener('change', renderChart);
   document.getElementById('f_extub').addEventListener('change', onFExtubChange);
 
+  /* Vista en vivo: encabezado + peso sincronizado con Datos del paciente */
+  document.getElementById('f_paciente').addEventListener('input', refreshVivoHeader);
+  document.getElementById('f_especie').addEventListener('change', refreshVivoHeader);
+  document.getElementById('f_peso').addEventListener('input', onPesoChange);
+  document.getElementById('vivo-peso').addEventListener('input', onVivoPesoChange);
+  refreshVivoHeader();
+  onPesoChange();
+
   /* ── EVENT DELEGATION GLOBAL ──────────────────────────────────────────
      Usa data-action en lugar de onclick para máxima compatibilidad
      con Safari y Chrome en file:// (iOS y desktop).
@@ -3358,6 +3563,7 @@ function init(){
       case 'clearInduction':  clearInduction(); break;
       case 'clearExtubation': clearExtubation(); break;
       case 'openChartNote':   openChartNote(); break;
+      case 'quickNota':       quickNota(el.dataset.text); break;
       case 'confirmChartNote': confirmChartNote(el); break;
       case 'delChartNote':    delChartNote(parseInt(el.dataset.idx)); break;
 
