@@ -1795,7 +1795,6 @@ function onRegInputChange(input){
   input.className=VITAL_INPUT_BASE+' '+s.input;
   if(st==='crit' && prevStatus!=='crit'){
     toast('⚠ '+p.label+' fuera de rango crítico');
-    playAlarm('alert');
   }
 }
 
