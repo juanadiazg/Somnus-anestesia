@@ -2030,7 +2030,7 @@ function renderChart(){
   if(!cv)return;
   const pts=registros.filter(r=>r.vals);
   const hasData=pts.length>0;
-  const hasMarkers=inductionMarker||extubationMarker||chartNotes.length>0;
+  const hasMarkers=inductionMarker||extubationMarker||chartNotes.length>0||val('f_hora_inicio')||val('f_hora_fin');
   if(!hasData&&!hasMarkers){if(empty)empty.style.display='block';cv.style.display='none';return;}
   if(empty)empty.style.display='none';cv.style.display='block';
 
@@ -2284,7 +2284,7 @@ function renderChart(){
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
-window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extubationMarker||chartNotes.length)renderChart();});
+window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extubationMarker||chartNotes.length||val('f_hora_inicio')||val('f_hora_fin'))renderChart();});
 
 /* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
 /* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
