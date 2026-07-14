@@ -559,7 +559,6 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2l4 4-9 9-4 1 1-4zM2 22l5-1"/></svg>
       <span class="card-title">Inducción</span>
     </div>
-    <div class="field" style="max-width:180px;margin-bottom:8px"><label>Hora inducción</label><input type="time" id="f_hora_induccion"></div>
     <div id="list-ind"></div>
     <button class="btn btn-sm" data-action="addDrug" data-section="ind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Agregar fármaco</button>
   </div>
@@ -604,9 +603,13 @@ input[type=date],select,textarea{
         <input type="checkbox" id="f_alarma" checked style="width:auto"> Alarma sonora
       </label>
     </div>
-    <div class="grid g3" style="margin-top:6px">
+    <div class="grid g4" style="margin-top:6px">
+      <div class="field"><label>Inducción</label><input type="time" id="f_hora_induccion"></div>
       <div class="field"><label>Inicio cirugía</label><input type="time" id="f_hora_inicio"></div>
       <div class="field"><label>Fin procedimiento</label><input type="time" id="f_hora_fin"></div>
+      <div class="field"><label>Extubación</label><input type="time" id="f_extub"></div>
+    </div>
+    <div class="grid g3" style="margin-top:6px">
       <div class="field"><label>Fluidoterapia (mL/kg/h)</label><input type="number" step="0.1" id="f_fluido" placeholder="5"></div>
     </div>
   </div>
@@ -724,18 +727,6 @@ input[type=date],select,textarea{
       <span class="card-title">Gráfico de tendencias</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-      <button class="btn btn-sm" id="btn-induccion" data-action="markInduction">Inducción</button>
-      <span id="ind-edit" style="display:none;align-items:center;gap:5px;font-size:13px;background:var(--surf);padding:3px 8px;border-radius:6px">
-        <span style="color:#3B6D11;font-weight:600">Inducción</span>
-        <input type="time" id="ind-time" data-action="editInductionTime" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:13px;font-family:inherit">
-        <button data-action="clearInduction" title="Quitar inducción" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>
-      </span>
-      <button class="btn btn-sm" id="btn-extubacion" data-action="markExtubation">Extubación</button>
-      <span id="ext-edit" style="display:none;align-items:center;gap:5px;font-size:13px;background:var(--surf);padding:3px 8px;border-radius:6px">
-        <span style="color:#A32D2D;font-weight:600">Extubación</span>
-        <input type="time" id="ext-time" data-action="editExtubationTime" style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:13px;font-family:inherit">
-        <button data-action="clearExtubation" title="Quitar extubación" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>
-      </span>
       <button class="btn btn-sm" data-action="openChartNote">&#x1F4DD; Agregar nota</button>
     </div>
     <div style="overflow-x:auto"><canvas id="trendChart" height="340" style="width:100%;min-width:520px"></canvas></div>
@@ -754,8 +745,7 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       <span class="card-title">Tiempos de recuperación</span>
     </div>
-    <div class="grid g4">
-      <div class="field"><label>Extubación</label><input type="time" id="f_extub"></div>
+    <div class="grid g3">
       <div class="field"><label>Decúbito esternal</label><input type="time" id="f_esternal"></div>
       <div class="field"><label>Bipedestación</label><input type="time" id="f_bipe"></div>
       <div class="field"><label>Alta / traslado</label><input type="time" id="f_alta"></div>
@@ -853,8 +843,8 @@ input[type=date],select,textarea{
     <div class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-3">
       <button data-action="quickHoraEvento" data-field="f_hora_inicio" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-teal-50 tw-text-teal-700 tw-border tw-border-teal-200 tw-font-semibold tw-text-sm hover:tw-bg-teal-100 active:tw-scale-95 tw-transition">Inicio de cirugía</button>
       <button data-action="quickHoraEvento" data-field="f_hora_fin" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-border tw-border-slate-200 tw-font-semibold tw-text-sm hover:tw-bg-slate-100 active:tw-scale-95 tw-transition">Fin de cirugía</button>
-      <button id="qbtn-induccion" data-action="markInduction" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-emerald-50 tw-text-emerald-700 tw-border tw-border-emerald-200 tw-font-semibold tw-text-sm hover:tw-bg-emerald-100 active:tw-scale-95 tw-transition disabled:tw-opacity-40 disabled:tw-cursor-not-allowed">Inducción</button>
-      <button id="qbtn-extubacion" data-action="markExtubation" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-rose-50 tw-text-rose-700 tw-border tw-border-rose-200 tw-font-semibold tw-text-sm hover:tw-bg-rose-100 active:tw-scale-95 tw-transition disabled:tw-opacity-40 disabled:tw-cursor-not-allowed">Extubación</button>
+      <button data-action="quickHoraEvento" data-field="f_hora_induccion" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-emerald-50 tw-text-emerald-700 tw-border tw-border-emerald-200 tw-font-semibold tw-text-sm hover:tw-bg-emerald-100 active:tw-scale-95 tw-transition">Inducción</button>
+      <button data-action="quickHoraEvento" data-field="f_extub" class="tw-min-h-[44px] tw-px-4 tw-rounded-xl tw-bg-rose-50 tw-text-rose-700 tw-border tw-border-rose-200 tw-font-semibold tw-text-sm hover:tw-bg-rose-100 active:tw-scale-95 tw-transition">Extubación</button>
     </div>
     <p class="hint" style="margin-bottom:8px">Los botones de arriba quedan registrados de inmediato. Para un fármaco puntual, usá la nota y presioná "Registrar ahora" en Monitoreo.</p>
     <div id="vivo-log" class="tw-rounded-xl tw-border tw-border-slate-200 tw-divide-y tw-divide-slate-100"></div>
@@ -1397,8 +1387,6 @@ let cdInt=null, cdRemaining=0;
 let registros=[];
 let drugCounter=0;
 let scales={mpa:null,ind:null,intub:null,recup:null};
-let inductionMarker=null;   // {t, time}
-let extubationMarker=null;  // {t, time}
 let chartNotes=[];           // [{t, time, notes:[str,str]}]
 
 /* Parámetros por defecto + personalizados. fixed=true => no se puede eliminar */
@@ -1518,7 +1506,8 @@ function quickHoraEvento(fieldId){
   const n=new Date();
   el.value=p2(n.getHours())+':'+p2(n.getMinutes());
   el.dispatchEvent(new Event('change',{bubbles:true}));
-  const label=fieldId==='f_hora_inicio' ? 'Inicio de cirugía' : 'Fin de cirugía';
+  const labels={f_hora_inicio:'Inicio de cirugía',f_hora_fin:'Fin de cirugía',f_hora_induccion:'Inducción',f_extub:'Extubación'};
+  const label=labels[fieldId]||'Evento';
   toast('✓ '+label+' registrado · '+el.value);
 }
 
@@ -2030,7 +2019,7 @@ function renderChart(){
   if(!cv)return;
   const pts=registros.filter(r=>r.vals);
   const hasData=pts.length>0;
-  const hasMarkers=inductionMarker||extubationMarker||chartNotes.length>0||val('f_hora_inicio')||val('f_hora_fin');
+  const hasMarkers=chartNotes.length>0||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin');
   if(!hasData&&!hasMarkers){if(empty)empty.style.display='block';cv.style.display='none';return;}
   if(empty)empty.style.display='none';cv.style.display='block';
 
@@ -2051,7 +2040,10 @@ function renderChart(){
     return o.t!=null?o.t/60:null;
   }
   const xs=pts.map((r,i)=>{const c=chartClockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
-  const indX=evX(inductionMarker), extX=evX(extubationMarker);
+  const induccionTime=val('f_hora_induccion');
+  const indX=induccionTime?chartClockMin(induccionTime):null;
+  const extubTime=val('f_extub');
+  const extX=extubTime?chartClockMin(extubTime):null;
   const inicioCxTime=val('f_hora_inicio');
   const iniX=inicioCxTime?chartClockMin(inicioCxTime):null;
   const finCxTime=val('f_hora_fin');
@@ -2284,52 +2276,10 @@ function renderChart(){
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
-window.addEventListener('resize',()=>{if(registros.length||inductionMarker||extubationMarker||chartNotes.length||val('f_hora_inicio')||val('f_hora_fin'))renderChart();});
+window.addEventListener('resize',()=>{if(registros.length||chartNotes.length||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin'))renderChart();});
 
 /* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
 /* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
-function refreshMarkerUI(){
-  const bi=document.getElementById('btn-induccion'),ie=document.getElementById('ind-edit'),it=document.getElementById('ind-time');
-  const hi=document.getElementById('f_hora_induccion');
-  const qi=document.getElementById('qbtn-induccion');
-  if(inductionMarker){if(bi)bi.style.display='none';if(ie)ie.style.display='inline-flex';if(it)it.value=inductionMarker.time;if(hi)hi.value=inductionMarker.time;if(qi)qi.disabled=true;}
-  else{if(bi){bi.style.display='';bi.disabled=false;}if(ie)ie.style.display='none';if(hi)hi.value='';if(qi)qi.disabled=false;}
-  const be=document.getElementById('btn-extubacion'),ee=document.getElementById('ext-edit'),et=document.getElementById('ext-time');
-  const fe=document.getElementById('f_extub');
-  const qe=document.getElementById('qbtn-extubacion');
-  if(extubationMarker){if(be)be.style.display='none';if(ee)ee.style.display='inline-flex';if(et)et.value=extubationMarker.time;if(fe)fe.value=extubationMarker.time;if(qe)qe.disabled=true;}
-  else{if(be){be.style.display='';be.disabled=false;}if(ee)ee.style.display='none';if(fe)fe.value='';if(qe)qe.disabled=false;}
-}
-function markInduction(){
-  if(inductionMarker)return;
-  const now=new Date();
-  const time=p2(now.getHours())+':'+p2(now.getMinutes());
-  inductionMarker={t:timerSecs,time};
-  refreshMarkerUI();guardarSesion(true);renderChart();
-  toast('Inicio de inducción marcado · '+time);
-}
-function markExtubation(){
-  if(extubationMarker)return;
-  const now=new Date();
-  const time=p2(now.getHours())+':'+p2(now.getMinutes());
-  extubationMarker={t:timerSecs,time};
-  refreshMarkerUI();guardarSesion(true);renderChart();
-  toast('Extubación marcada · '+time);
-}
-function editInductionTime(v){if(inductionMarker&&v){inductionMarker.time=v;refreshMarkerUI();renderChart();guardarSesion(true);}}
-function editExtubationTime(v){if(extubationMarker&&v){extubationMarker.time=v;refreshMarkerUI();renderChart();guardarSesion(true);}}
-function clearInduction(){inductionMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Inducción eliminada');}
-function clearExtubation(){extubationMarker=null;refreshMarkerUI();renderChart();guardarSesion(true);toast('Extubación eliminada');}
-function onHoraInduccionChange(){
-  const v=val('f_hora_induccion');
-  inductionMarker = v ? {t:(inductionMarker?inductionMarker.t:timerSecs),time:v} : null;
-  refreshMarkerUI();guardarSesion(true);renderChart();
-}
-function onFExtubChange(){
-  const v=val('f_extub');
-  extubationMarker = v ? {t:(extubationMarker?extubationMarker.t:timerSecs),time:v} : null;
-  refreshMarkerUI();guardarSesion(true);renderChart();
-}
 function openChartNote(){
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
@@ -2421,8 +2371,7 @@ function nuevoRegistro(){
   document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('on'));
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
-  inductionMarker=null;extubationMarker=null;chartNotes=[];
-  refreshMarkerUI();
+  chartNotes=[];
   params=params.filter(p=>p.fixed);
   renderRegGrid();renderRegTable();renderScales();renderChart();renderChartNotes();
   refreshMantOptions&&refreshMantOptions();
@@ -3009,7 +2958,7 @@ function estadoAJSON(){
     'f_mucosas','f_tllc','f_deshid','f_glucosa','f_obs_pre',
     'f_sonda','f_cuff','f_inhalatorio','f_circuito',
     'f_intervalo','f_alarma',
-    'f_hora_mpa','f_hora_inicio','f_hora_fin',
+    'f_hora_mpa','f_hora_induccion','f_hora_inicio','f_hora_fin',
     'f_fluido','f_extub','f_esternal','f_bipe','f_alta',
     'f_tipo_recup','f_dolor_post','f_vol_total','f_recom','f_orient',
     /* Campos "Otro" de técnica */
@@ -3059,8 +3008,6 @@ function estadoAJSON(){
     scales:       JSON.parse(JSON.stringify(scales)),
     ajustesMant:  JSON.parse(JSON.stringify(ajustesMant)),
     timerSecs,
-    inductionMarker:  inductionMarker  ? JSON.parse(JSON.stringify(inductionMarker))  : null,
-    extubationMarker: extubationMarker ? JSON.parse(JSON.stringify(extubationMarker)) : null,
     chartNotes:   JSON.parse(JSON.stringify(chartNotes))
   };
 }
@@ -3142,17 +3089,16 @@ function restaurarSesion(estado){
   scales      = estado.scales      || scales;
   ajustesMant = estado.ajustesMant || [];
   timerSecs   = estado.timerSecs   || 0;
-  inductionMarker  = estado.inductionMarker  || null;
-  extubationMarker = estado.extubationMarker || null;
   chartNotes       = estado.chartNotes       || [];
-  /* Compatibilidad: sesiones guardadas antes de sincronizar "Extubación" (recuperación)
-     con el marcador del gráfico pueden traer f_extub sin extubationMarker */
-  if(!extubationMarker){
-    const feVal=val('f_extub');
-    if(feVal) extubationMarker={t:0,time:feVal};
+  /* Compatibilidad: sesiones guardadas cuando inducción/extubación eran marcadores.
+     Se vuelca su hora a los campos de "Configuración de registro". */
+  if(estado.inductionMarker && estado.inductionMarker.time){
+    const el=document.getElementById('f_hora_induccion'); if(el && !el.value) el.value=estado.inductionMarker.time;
+  }
+  if(estado.extubationMarker && estado.extubationMarker.time){
+    const el=document.getElementById('f_extub'); if(el && !el.value) el.value=estado.extubationMarker.time;
   }
   document.getElementById('timer').textContent = fmt(timerSecs);
-  refreshMarkerUI();
 
   /* Re-renderizar todo */
   renderRegGrid();  renderRegTable(); renderScales(); renderChart(); renderChartNotes();
@@ -3260,8 +3206,6 @@ function activarAutoGuardado(){
     if(act === 'editRegVal'){ editRegVal(parseInt(el.dataset.idx), el.dataset.key, el.value); return; }
     if(act === 'editRegPlano'){ editRegPlano(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editRegNota'){ editRegNota(parseInt(el.dataset.idx), el.value); return; }
-    if(act === 'editInductionTime'){ editInductionTime(el.value); return; }
-    if(act === 'editExtubationTime'){ editExtubationTime(el.value); return; }
     if(act === 'editChartNoteTime'){ editChartNoteTime(parseInt(el.dataset.idx), el.value); return; }
     guardarSesion(false);
   }, true);
@@ -3452,10 +3396,10 @@ function init(){
   document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
   document.getElementById('f_asa').addEventListener('change', updateAsaBadge);
   document.getElementById('f_intervalo').addEventListener('change', onIntervalChange);
-  document.getElementById('f_hora_induccion').addEventListener('change', onHoraInduccionChange);
+  document.getElementById('f_hora_induccion').addEventListener('change', renderChart);
   document.getElementById('f_hora_inicio').addEventListener('change', renderChart);
   document.getElementById('f_hora_fin').addEventListener('change', renderChart);
-  document.getElementById('f_extub').addEventListener('change', onFExtubChange);
+  document.getElementById('f_extub').addEventListener('change', renderChart);
 
   /* Vista en vivo: encabezado + peso sincronizado con Datos del paciente */
   document.getElementById('f_paciente').addEventListener('input', refreshVivoHeader);
@@ -3507,10 +3451,6 @@ function init(){
       case 'importarBorrador': importarBorradorJSON(); break;
       case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       case 'compartirPDF':    compartirPDF(); break;
-      case 'markInduction':   markInduction(); break;
-      case 'markExtubation':  markExtubation(); break;
-      case 'clearInduction':  clearInduction(); break;
-      case 'clearExtubation': clearExtubation(); break;
       case 'openChartNote':   openChartNote(); break;
       case 'quickHoraEvento': quickHoraEvento(el.dataset.field); break;
       case 'confirmChartNote': confirmChartNote(el); break;
