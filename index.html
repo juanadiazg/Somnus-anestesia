@@ -2054,8 +2054,10 @@ function renderChart(){
   const indX=evX(inductionMarker), extX=evX(extubationMarker);
   const inicioCxTime=val('f_hora_inicio');
   const iniX=inicioCxTime?chartClockMin(inicioCxTime):null;
+  const finCxTime=val('f_hora_fin');
+  const finX=finCxTime?chartClockMin(finCxTime):null;
   const noteX=chartNotes.map(evX);
-  const allTimeVals=[...xs,indX,extX,iniX,...noteX].filter(v=>v!=null);
+  const allTimeVals=[...xs,indX,extX,iniX,finX,...noteX].filter(v=>v!=null);
   let xMin=allTimeVals.length?Math.min(...allTimeVals):0;
   let xMax=allTimeVals.length?Math.max(...allTimeVals):10;
   if(xMax-xMin<10){xMax=xMin+10;}
@@ -2161,50 +2163,25 @@ function renderChart(){
     ctx.stroke();
   });
 
-  /* === Marcador inicio cirugía === */
-  if(iniX!=null){
-    const xc=X(iniX);
-    if(xc>=padL&&xc<=padL+plotW){
-      ctx.save();
-      ctx.strokeStyle='#0F766E'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-      ctx.beginPath(); ctx.moveTo(xc,padT); ctx.lineTo(xc,padT+plotH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#0F766E'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillText('Inicio cirugía',xc,padT+2);
-      ctx.restore();
-    }
+  /* === Marcadores de eventos: inicio cx, inducción, fin cx, extubación === */
+  function drawEventMarker(xVal,color,label,labelY){
+    if(xVal==null)return;
+    const xx=X(xVal);
+    if(xx<padL||xx>padL+plotW)return;
+    ctx.save();
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.font='bold 8px -apple-system,Arial,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(label,xx,labelY);
+    ctx.restore();
   }
-
-  /* === Marcador inducción === */
-  if(inductionMarker&&indX!=null){
-    const xi=X(indX);
-    if(xi>=padL&&xi<=padL+plotW){
-      ctx.save();
-      ctx.strokeStyle='#3B6D11'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-      ctx.beginPath(); ctx.moveTo(xi,padT); ctx.lineTo(xi,padT+plotH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#3B6D11'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillText('Inducción',xi,padT+2);
-      ctx.restore();
-    }
-  }
-
-  /* === Marcador extubación === */
-  if(extubationMarker&&extX!=null){
-    const xe=X(extX);
-    if(xe>=padL&&xe<=padL+plotW){
-      ctx.save();
-      ctx.strokeStyle='#A32D2D'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-      ctx.beginPath(); ctx.moveTo(xe,padT); ctx.lineTo(xe,padT+plotH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#A32D2D'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillText('Extubación',xe,padT+2);
-      ctx.restore();
-    }
-  }
+  /* Se escalonan las etiquetas (2 alturas) para que no se solapen si coinciden */
+  drawEventMarker(iniX,'#0F766E','Inicio cx',padT+2);
+  drawEventMarker(indX,'#3B6D11','Inducción',padT+12);
+  drawEventMarker(finX,'#475569','Fin cx',padT+2);
+  drawEventMarker(extX,'#A32D2D','Extubación',padT+12);
 
   /* === Íconos de notas === */
   chartNotes.forEach((note,ni)=>{
@@ -2291,6 +2268,11 @@ function renderChart(){
         ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
         ctx.setLineDash([]);
         break;
+      case 'fincx':
+        ctx.strokeStyle='#475569'; ctx.lineWidth=1; ctx.setLineDash([3,2]);
+        ctx.beginPath(); ctx.moveTo(sx,sy-lSZ); ctx.lineTo(sx,sy+lSZ); ctx.stroke();
+        ctx.setLineDash([]);
+        break;
     }
     ctx.fillStyle='#4a5550'; ctx.textAlign='left'; ctx.textBaseline='middle';
     ctx.fillText(label,lx+18,iy+5);
@@ -2298,7 +2280,7 @@ function renderChart(){
   const legendItems=[
     ['PAs','PAs'],['PAd','PAd'],['PAm','PAm'],
     ['FC','FC'],['CO2','CO₂'],['SpO2','SpO₂'],['FR','FR'],['Temp','T°'],
-    ['nota','Nota'],['iniciocx','Inicio cirugía'],['ind','Inducción'],['ext','Extubación'],
+    ['nota','Nota'],['iniciocx','Inicio cirugía'],['ind','Inducción'],['fincx','Fin cirugía'],['ext','Extubación'],
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
@@ -2915,9 +2897,15 @@ async function compartirPDF(){
   const cuerpo  = cuerpoMail();
   const fileObj = new File([blob], fn, {type:'application/pdf'});
 
+  /* Apple Mail no rellena el campo "Asunto" cuando el PDF va adjunto (limitación
+     del sistema), e ignora el parámetro title. Para que el asunto sea siempre
+     visible en iPad y Mac, se antepone como primera línea del mensaje. No se
+     pasa title para evitar que macOS lo duplique. */
+  const mensaje = asunto + '\n\n' + cuerpo;
+
   if(navigator.canShare && navigator.canShare({files:[fileObj]})){
     try{
-      await navigator.share({ title: asunto, text: cuerpo, files: [fileObj] });
+      await navigator.share({ text: mensaje, files: [fileObj] });
       toast('✓ Registro compartido');
       return;
     } catch(e){
@@ -3466,6 +3454,7 @@ function init(){
   document.getElementById('f_intervalo').addEventListener('change', onIntervalChange);
   document.getElementById('f_hora_induccion').addEventListener('change', onHoraInduccionChange);
   document.getElementById('f_hora_inicio').addEventListener('change', renderChart);
+  document.getElementById('f_hora_fin').addEventListener('change', renderChart);
   document.getElementById('f_extub').addEventListener('change', onFExtubChange);
 
   /* Vista en vivo: encabezado + peso sincronizado con Datos del paciente */
