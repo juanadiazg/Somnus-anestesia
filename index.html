@@ -3203,6 +3203,7 @@ function activarAutoGuardado(){
     var el = e.target;
     var act = el && el.dataset && el.dataset.action;
     if(act === 'editRegTime'){ editRegTime(parseInt(el.dataset.idx), el.value); return; }
+    if(act === 'editAjusteTime'){ editAjusteTime(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editRegVal'){ editRegVal(parseInt(el.dataset.idx), el.dataset.key, el.value); return; }
     if(act === 'editRegPlano'){ editRegPlano(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editRegNota'){ editRegNota(parseInt(el.dataset.idx), el.value); return; }
@@ -3298,6 +3299,14 @@ function eliminarAjuste(idx){
   guardarSesion(true);
 }
 
+/* Editar la hora de un ajuste (como en la tabla del registro anestésico) */
+function editAjusteTime(idx, value){
+  if(idx>=0 && idx<ajustesMant.length){
+    ajustesMant[idx].time = value;
+    guardarSesion(true);
+  }
+}
+
 /* Renderizar tabla de ajustes */
 function renderAjustesTabla(){
   const tbody  = document.getElementById('ajuste-tbody');
@@ -3315,10 +3324,12 @@ function renderAjustesTabla(){
   if(empty) empty.style.display = 'none';
 
   tbody.innerHTML = ajustesMant.map((a,i)=>{
-    const tStr  = a.time ? a.time : (a.t != null ? a.t + " min" : '—');
     const trBg  = i%2===0 ? '' : 'background:var(--surf)';
     return '<tr style="'+trBg+'">' +
-      '<td style="padding:6px 8px;color:var(--teal-d);font-weight:600;white-space:nowrap">'+tStr+'</td>' +
+      '<td style="padding:6px 8px;white-space:nowrap">' +
+        '<input type="time" value="'+(a.time||'')+'" data-action="editAjusteTime" data-idx="'+i+'" '+
+        'style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:12px;color:var(--teal-d);font-weight:600;font-family:inherit;width:96px">' +
+      '</td>' +
       '<td style="padding:6px 8px;font-weight:500">'+a.farmaco+'</td>' +
       '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+a.dosis+'</td>' +
       '<td style="padding:6px 8px;color:var(--muted)">'+a.unidad+'</td>' +
