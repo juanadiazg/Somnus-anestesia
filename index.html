@@ -2531,9 +2531,10 @@ function exportPDFPortrait(){
 
   section('L','Técnica');
   kv('L','Tipo',getToggles('t-tipo')||'—');
-  kvPair('L','Vía aérea',getToggles('t-via')||'—','Sonda',val('f_sonda'));
-  kvPair('L','Inhalat.',val('f_inhalatorio'),'Circuito',clip(val('f_circuito'),20));
-  kvPair('L','Ventil.',getToggles('t-vent')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
+  kv('L','Vía aérea',getToggles('t-via')||'—');
+  kv('L','Ventil.',getToggles('t-vent')||'—');
+  kvPair('L','Sonda',val('f_sonda')||'—','Inhalat.',val('f_inhalatorio')||'—');
+  kvPair('L','Circuito',val('f_circuito')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
   yL+=1.5;
 
   section('L','Farmacología');
@@ -2720,9 +2721,10 @@ function exportPDFLandscape(){
 
   section(0,'Técnica');
   kv(0,'Tipo',getToggles('t-tipo')||'—');
-  kvPair(0,'Vía aérea',getToggles('t-via')||'—','Sonda',val('f_sonda'));
-  kvPair(0,'Inhalat.',val('f_inhalatorio'),'Circuito',clip(val('f_circuito'),18));
-  kvPair(0,'Ventil.',getToggles('t-vent')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
+  kv(0,'Vía aérea',getToggles('t-via')||'—');
+  kv(0,'Ventil.',getToggles('t-vent')||'—');
+  kvPair(0,'Sonda',val('f_sonda')||'—','Inhalat.',val('f_inhalatorio')||'—');
+  kvPair(0,'Circuito',val('f_circuito')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
 
   /* ============ COLUMNA 1: Farmacología + Recuperación ============ */
   section(1,'Farmacología');
