@@ -1375,7 +1375,7 @@ const BLOCK_CATALOG=[
   'Femoral','Femoral preiliaco','Safeno','Isquiático',
   'Cuadrado lumbar',
   /* Neuroaxiales */
-  'Epidural lumbosacra','Epidural torácica','Intratecal',
+  'Epidural lumbosacra','Epidural sacrococcígea','Epidural torácica','Intratecal',
   /* Locales / otros */
   'Línea incisional','Intratesticular','Intraperitoneal',
   'Bier (IVRA)','Otro'
@@ -1560,6 +1560,7 @@ function getToggles(group){
 }
 
 /* ============ FÁRMACOS (con catálogos desplegables) ============ */
+function dedup(arr){return arr.filter((v,i,a)=>a.indexOf(v)===i);}
 function optList(arr,sel,noSort){
   const sorted = noSort ? arr : [...arr].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
   return sorted.map(x=>'<option'+(x===sel?' selected':'')+'>'+x+'</option>').join('');
@@ -1630,13 +1631,14 @@ function drugSelect(drugs,sel){
   return '<select data-f="farmaco"><option value="">Fármaco…</option>'+optList(drugs,sel)+'</select>';
 }
 function unitSelect(units,sel){
-  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(units,sel)+'</select>';
+  /* Las listas de bolo y CRI comparten unidades (Cp), así que se quitan duplicados */
+  return '<select data-f="unidad"><option value="">Unidad…</option>'+optList(dedup(units),sel)+'</select>';
 }
 function blockSelect(sel){
   return '<select data-f="bloqueo"><option value="">Bloqueo / sitio…</option>'+optList(BLOCK_CATALOG,sel)+'</select>';
 }
 function viaSelect(sel){
-  const vias=['IM','IV','IV lento','SC','CRI','VO','Epidural','Intratecal','Tópica','Inhalatoria','Intraperitoneal','Local'];
+  const vias=['IM','IV','IV lento','SC','CRI','TCI','VO','Epidural','Intratecal','Tópica','Inhalatoria','Intraperitoneal','Local'];
   return '<select data-f="via"><option value="">Vía…</option>'+optList(vias,sel)+'</select>';
 }
 function indicacionSelect(sel){
@@ -3249,7 +3251,7 @@ function refreshAjusteSelects(){
   selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' + optList(allMant,prevFarm);
 
   /* Unidades: CRI + bolus + inhalatoria, en orden alfabético */
-  const units = [...UNIT_CATALOG.cri, ...UNIT_CATALOG.inhal, ...UNIT_CATALOG.bolus];
+  const units = dedup([...UNIT_CATALOG.cri, ...UNIT_CATALOG.inhal, ...UNIT_CATALOG.bolus]);
   const prevUnit = selUnit.value;
   selUnit.innerHTML = '<option value="">Unidad…</option>' + optList(units,prevUnit);
 }
