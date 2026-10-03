@@ -283,6 +283,8 @@ table.reg tr:hover td:first-child{background:var(--surf)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+/* Valor arrastrado del registro anterior: se ve atenuado hasta que lo confirmas o editas */
+.tw-vital-input[data-arrastrado="1"]{opacity:.45;font-style:italic}
 @media print{.topbar,.tabs,.fab{display:none}}
 
 /* ── Fallbacks Safari ≤13 / iOS ≤13 ── */
@@ -807,6 +809,10 @@ input[type=date],select,textarea{
       <svg viewBox="0 0 24 24" class="tw-w-3.5 tw-h-3.5" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       Falta registrar
     </div>
+    <button data-action="openEmergencia" class="tw-min-h-[44px] tw-px-5 tw-rounded-xl tw-bg-red-600 hover:tw-bg-red-700 tw-text-white tw-font-bold tw-text-sm tw-border-0 tw-cursor-pointer active:tw-scale-95 tw-transition tw-flex tw-items-center tw-gap-2 tw-shadow-sm">
+      <svg viewBox="0 0 24 24" class="tw-w-4 tw-h-4" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      Emergencia
+    </button>
   </div>
 
   <div class="card">
@@ -1737,6 +1743,27 @@ const VITAL_TILE_STYLES={
 const VITAL_TILE_BASE='tw-vital-tile tw-rounded-2xl tw-border-2 tw-p-3 tw-flex tw-flex-col tw-gap-1 tw-transition';
 const VITAL_INPUT_BASE='tw-vital-input tw-w-full tw-bg-transparent tw-border-0 tw-p-0 tw-text-2xl tw-font-extrabold tw-tabular-nums tw-outline-none focus:tw-ring-2 tw-rounded-lg';
 
+/* Rangos de alarma por especie (paciente anestesiado).
+   ⚠️ Valores de referencia: deben ser validados clínicamente antes de uso real.
+   Si la especie no está en la tabla se usan los rangos por defecto del parámetro. */
+const RANGOS_ESPECIE={
+  'Canino':{fc:[60,160], fr:[8,25],  pam:[60,100], temp:[36.5,39.2]},
+  'Felino':{fc:[120,220],fr:[10,30], pam:[60,100], temp:[36.5,39.5]},
+  'Equino':{fc:[26,50],  fr:[6,16],  pam:[70,110], temp:[36.5,38.5]},
+  'Conejo':{fc:[150,300],fr:[30,60], pam:[60,100], temp:[38.0,40.0]},
+};
+function aplicarRangosEspecie(){
+  const r=RANGOS_ESPECIE[val('f_especie')];
+  params.forEach(p=>{
+    if(p.base===undefined) p.base=[p.lo,p.hi];   /* conserva el rango original */
+    const rr=r&&r[p.key];
+    p.lo=rr?rr[0]:p.base[0];
+    p.hi=rr?rr[1]:p.base[1];
+  });
+  /* recolorea sin perder lo ya tecleado */
+  params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el)onRegInputChange(el);});
+}
+
 /* Devuelve 'ok'/'warn'/'crit', o null si el parámetro no tiene rango definido
    (ej. parámetros custom agregados por el usuario) o no hay valor cargado. */
 function estadoParametro(p,valor){
@@ -1764,10 +1791,14 @@ function renderRegGrid(){
            rm+'</div>'+
            '<input type="number" step="any" inputmode="decimal" id="r_'+p.key+'" data-key="'+p.key+'" placeholder="—" class="'+VITAL_INPUT_BASE+' '+VITAL_TILE_STYLES.neutral.input+'"'+
            (auto?' readonly title="Se calcula automáticamente desde PAS y PAD"':'')+oninput+'>'+
+           (auto?'':'<div class="tw-flex tw-gap-1 tw-mt-0.5">'+
+             '<button type="button" data-action="bumpParam" data-key="'+p.key+'" data-delta="-1" aria-label="Bajar '+p.label+'" class="tw-flex-1 tw-min-h-[40px] tw-rounded-lg tw-bg-slate-100 hover:tw-bg-slate-200 tw-text-slate-700 tw-text-xl tw-font-bold tw-leading-none tw-border-0 tw-cursor-pointer active:tw-scale-95 tw-transition">−</button>'+
+             '<button type="button" data-action="bumpParam" data-key="'+p.key+'" data-delta="1" aria-label="Subir '+p.label+'" class="tw-flex-1 tw-min-h-[40px] tw-rounded-lg tw-bg-slate-100 hover:tw-bg-slate-200 tw-text-slate-700 tw-text-xl tw-font-bold tw-leading-none tw-border-0 tw-cursor-pointer active:tw-scale-95 tw-transition">+</button>'+
+           '</div>')+
            '</div>';
   }).join('');
   grid.querySelectorAll('.tw-vital-input').forEach(input=>{
-    input.addEventListener('input',()=>onRegInputChange(input));
+    input.addEventListener('input',()=>{delete input.dataset.arrastrado;onRegInputChange(input);});
   });
 }
 
@@ -1777,6 +1808,7 @@ function renderRegGrid(){
 function onRegInputChange(input){
   const p=params.find(x=>x.key===input.dataset.key);
   if(!p) return;
+  if(input.value==='') delete input.dataset.arrastrado;
   const tile=input.closest('.tw-vital-tile');
   const prevStatus=tile.dataset.status||'neutral';
   const st=estadoParametro(p,input.value)||'neutral';
@@ -1939,7 +1971,7 @@ function registrar(){
      tecla, desde onRegInputChange() — no hace falta repetirla acá. */
   renderRegTable();
   renderChart();
-  limpiarReg();
+  prefillDesdeUltimo();
   guardarSesion(true);
   Reminder.reset();
   if(timerRunning && document.getElementById('f_intervalo').value!=='manual'){
@@ -1948,9 +1980,39 @@ function registrar(){
   toast('✓ Registro guardado · '+time);
 }
 function limpiarReg(){
-  params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el)el.value='';});
+  params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el){el.value='';delete el.dataset.arrastrado;onRegInputChange(el);}});
   const pl=document.getElementById('r_plano');if(pl)pl.value='';
   const nt=document.getElementById('r_nota');if(nt)nt.value='';
+}
+/* Tras registrar, arrastra los últimos valores en vez de vaciar la grilla:
+   en la siguiente toma solo corriges lo que cambió. La nota no se arrastra. */
+function prefillDesdeUltimo(){
+  const last=registros[registros.length-1];
+  if(!last){limpiarReg();return;}
+  params.forEach(p=>{
+    const el=document.getElementById('r_'+p.key);
+    if(!el)return;
+    const v=last.vals[p.key];
+    if(v){el.value=v;el.dataset.arrastrado='1';}
+    else {el.value='';delete el.dataset.arrastrado;}
+    onRegInputChange(el);
+  });
+  const pl=document.getElementById('r_plano');if(pl)pl.value=last.plano||'';
+  const nt=document.getElementById('r_nota');if(nt)nt.value='';
+}
+/* Paso de ajuste de los botones ± por parámetro */
+const STEP_PARAM={fc:5,fr:2,spo2:1,etco2:2,pas:5,pad:5,pam:5,temp:0.1,pip:1,vt:1};
+function bumpParam(key,delta){
+  const el=document.getElementById('r_'+key);
+  if(!el||el.readOnly)return;
+  const step=STEP_PARAM[key]||1;
+  const base=parseFloat(el.value);
+  let next=(isNaN(base)?0:base)+delta*step;
+  next=Math.round(next*10)/10;
+  el.value=next<0?0:next;
+  delete el.dataset.arrastrado;
+  if(key==='pas'||key==='pad')calcPAM();
+  onRegInputChange(el);
 }
 function delReg(i){registros.splice(i,1);renderRegTable();renderChart();}
 function editRegTime(idx, val){
@@ -2344,6 +2406,97 @@ function renderChartNotes(){
       '<button data-action="delChartNote" data-idx="'+idx+'" title="Quitar nota" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;flex-shrink:0">✕</button>'+
       '</div>';
   }).join('');
+}
+
+/* ============ MÓDULO DE EMERGENCIA ============
+   Dosis de reanimación ya calculadas al peso del paciente y registro de
+   maniobras en un toque (la hora se captura sola).
+   ⚠️ IMPORTANTE: las dosis y concentraciones de abajo son valores de
+   referencia y DEBEN ser validadas clínicamente antes de usarse. La app
+   no sustituye el criterio del anestesiólogo. */
+const EMERGENCIA_FARMACOS=[
+  {n:'Adrenalina dosis baja', d:0.01, c:1,   via:'IV/IO'},
+  {n:'Adrenalina dosis alta',  d:0.1,  c:1,   via:'IV/IO'},
+  {n:'Atropina',               d:0.04, c:1,   via:'IV/IO'},
+  {n:'Lidocaína (taquic. V.)', d:2,    c:20,  via:'IV'},
+  {n:'Amiodarona',             d:5,    c:50,  via:'IV'},
+  {n:'Naloxona (rev. opioide)',d:0.04, c:0.4, via:'IV'},
+  {n:'Flumazenil (rev. benzo)',d:0.01, c:0.1, via:'IV'},
+  {n:'Atipamezol (rev. α2)',   d:0.1,  c:5,   via:'IM'},
+  {n:'Efedrina',               d:0.1,  c:50,  via:'IV'},
+];
+const EMERGENCIA_MANIOBRAS=['Inicio RCP','Adrenalina','Atropina','Desfibrilación','ROSC','Fin RCP'];
+
+/* Registra un evento con la hora actual; aparece en el gráfico y en las notas */
+function registrarEventoEmergencia(texto){
+  const now=new Date();
+  const time=p2(now.getHours())+':'+p2(now.getMinutes());
+  const grupo=chartNotes.find(n=>n.time===time);
+  if(grupo){
+    if(grupo.notes.length<2) grupo.notes.push(texto);
+    else grupo.notes[1]+=' / '+texto;
+  }else{
+    chartNotes.push({t:timerSecs,time,notes:[texto]});
+  }
+  guardarSesion(true);renderChart();renderChartNotes();
+  toast('🚨 '+texto+' · '+time);
+  const log=document.getElementById('emg-log');
+  if(log) log.innerHTML=renderEmergenciaLog();
+}
+function renderEmergenciaLog(){
+  const ev=chartNotes.slice().sort((a,b)=>{
+    const ca=chartClockMin(a.time),cb=chartClockMin(b.time);
+    return (ca==null?0:ca)-(cb==null?0:cb);
+  });
+  if(!ev.length) return '<div style="color:var(--muted);font-size:13px">Sin eventos registrados</div>';
+  return ev.map(n=>'<div style="display:flex;gap:8px;padding:3px 0;font-size:13px">'+
+    '<b style="color:var(--teal-d);min-width:42px">'+n.time+'</b><span>'+n.notes.join(' / ')+'</span></div>').join('');
+}
+function emergenciaPeso(){
+  return parseFloat(val('f_peso')||(document.getElementById('vivo-peso')||{}).value||'')||0;
+}
+function renderEmergenciaTabla(){
+  const peso=emergenciaPeso();
+  if(!peso){
+    return '<div style="background:var(--red-l);color:var(--red);padding:10px;border-radius:8px;font-size:13px;font-weight:600">'+
+      'Ingresa el peso del paciente para calcular las dosis.</div>';
+  }
+  return '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+    '<thead><tr style="background:var(--surf);font-size:11px;text-transform:uppercase;color:var(--muted)">'+
+    '<th style="padding:6px;text-align:left">Fármaco</th><th style="padding:6px;text-align:right">Dosis</th>'+
+    '<th style="padding:6px;text-align:right">Total</th><th style="padding:6px;text-align:right">Volumen</th>'+
+    '<th style="padding:6px;text-align:left">Vía</th></tr></thead><tbody>'+
+    EMERGENCIA_FARMACOS.map(f=>{
+      const mg=f.d*peso, ml=mg/f.c;
+      return '<tr style="border-bottom:1px solid var(--line-soft)">'+
+        '<td style="padding:6px;font-weight:600">'+f.n+'</td>'+
+        '<td style="padding:6px;text-align:right;color:var(--muted)">'+f.d+' mg/kg</td>'+
+        '<td style="padding:6px;text-align:right;font-variant-numeric:tabular-nums">'+(Math.round(mg*1000)/1000)+' mg</td>'+
+        '<td style="padding:6px;text-align:right;font-weight:700;color:var(--teal-d);font-variant-numeric:tabular-nums">'+
+          (Math.round(ml*100)/100)+' mL</td>'+
+        '<td style="padding:6px;color:var(--muted)">'+f.via+'</td></tr>';
+    }).join('')+'</tbody></table>'+
+    '<p style="font-size:11.5px;color:var(--muted);margin-top:8px">Volumen calculado para <b>'+peso+' kg</b>. '+
+    'Concentraciones de referencia — verifica la del vial que estás usando.</p>';
+}
+function openEmergencia(){
+  document.getElementById('modalBg').innerHTML=
+    '<div class="modal" style="max-width:640px">'+
+    '<h3 style="color:var(--red)">🚨 Emergencia / reanimación</h3>'+
+    '<div style="background:#FDF2F2;border:1px solid var(--red-b);color:#7A1F1F;padding:8px 10px;'+
+      'border-radius:8px;font-size:12px;margin:8px 0 14px">Dosis de referencia. Verifícalas antes de administrar.</div>'+
+    '<div class="sub-label">Registrar maniobra (toma la hora automáticamente)</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">'+
+      EMERGENCIA_MANIOBRAS.map(m=>'<button class="btn btn-sm" data-action="eventoEmergencia" data-evento="'+m+'" '+
+        'style="border-color:var(--red-b);color:var(--red);font-weight:600">'+m+'</button>').join('')+
+    '</div>'+
+    '<div class="sub-label">Dosis calculadas al peso</div>'+
+    '<div style="overflow-x:auto">'+renderEmergenciaTabla()+'</div>'+
+    '<div class="sub-label" style="margin-top:14px">Eventos registrados</div>'+
+    '<div id="emg-log" style="max-height:140px;overflow-y:auto">'+renderEmergenciaLog()+'</div>'+
+    '<div class="modal-actions"><button class="btn" data-action="closeModal">Cerrar</button></div>'+
+    '</div>';
+  document.getElementById('modalBg').classList.add('show');
 }
 
 /* ============ ESCALAS RECUPERACIÓN ============ */
@@ -3106,6 +3259,7 @@ function restaurarSesion(estado){
 
   /* Re-renderizar todo */
   renderRegGrid();  renderRegTable(); renderScales(); renderChart(); renderChartNotes();
+  aplicarRangosEspecie();
   renderAjustesTabla();
   refreshMantOptions && refreshMantOptions();
   return true;
@@ -3355,6 +3509,7 @@ function initAjusteTimeInput(){
 
 function init(){
   renderRegGrid();renderRegTable();renderScales();renderChart();initDefaults();
+  aplicarRangosEspecie();
   /* Intentar restaurar sesión guardada; si no hay, precargar fármacos */
   const restaurado = cargarSesionGuardada();
   if(!restaurado) precargarFarmacos();
@@ -3418,7 +3573,7 @@ function init(){
 
   /* Vista en vivo: encabezado + peso sincronizado con Datos del paciente */
   document.getElementById('f_paciente').addEventListener('input', refreshVivoHeader);
-  document.getElementById('f_especie').addEventListener('change', refreshVivoHeader);
+  document.getElementById('f_especie').addEventListener('change', ()=>{refreshVivoHeader();aplicarRangosEspecie();});
   document.getElementById('f_peso').addEventListener('input', onPesoChange);
   document.getElementById('vivo-peso').addEventListener('input', onVivoPesoChange);
   refreshVivoHeader();
@@ -3448,6 +3603,9 @@ function init(){
       case 'singleToggle':    singleToggle(el, group); break;
       case 'addDrug':         addDrug(section); break;
       case 'openAddParam':    openAddParam(); break;
+      case 'bumpParam':       bumpParam(el.dataset.key, parseInt(el.dataset.delta)); break;
+      case 'openEmergencia':  openEmergencia(); break;
+      case 'eventoEmergencia': registrarEventoEmergencia(el.dataset.evento); break;
       case 'registrar':       registrar(); break;
       case 'limpiarReg':      limpiarReg(); break;
       case 'setOrient':       setOrient(orient, el); break;
@@ -3480,7 +3638,33 @@ function init(){
 }
 init();
 
-  /* Service Worker eliminado — no compatible con blob:// en Safari */
+  /* ===== Service Worker: la app abre sin señal (pabellón sin cobertura) =====
+     Solo se registra en https (GitHub Pages). En file:// se omite, porque ahí
+     los Service Workers no están permitidos. Usa red primero, así nunca sirve
+     una versión vieja cuando sí hay conexión. */
+  if('serviceWorker' in navigator && location.protocol === 'https:'){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    });
+  }
+
+  /* Aviso visible de que se trabaja sin conexión (los datos siguen guardándose) */
+  function actualizarEstadoRed(){
+    let b=document.getElementById('offline-badge');
+    if(!b){
+      b=document.createElement('div');
+      b.id='offline-badge';
+      b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:70;'+
+        'background:#854F0B;color:#fff;padding:7px 15px;border-radius:999px;font-size:13px;'+
+        'font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.2);display:none';
+      b.textContent='Sin conexión · el registro se guarda en el dispositivo';
+      document.body.appendChild(b);
+    }
+    b.style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online',  actualizarEstadoRed);
+  window.addEventListener('offline', actualizarEstadoRed);
+  actualizarEstadoRed();
 </script>
 
 </body>
