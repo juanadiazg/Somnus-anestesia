@@ -368,6 +368,9 @@ input[type=date],select,textarea{
 <input type="radio" name="tab" id="tab-vivo" class="tab-radio" hidden>
 
 <div class="tabs" id="tabs">
+  <label class="tab" for="tab-vivo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>Vista en vivo
+  </label>
   <label class="tab" for="tab-paciente">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Paciente
   </label>
@@ -382,9 +385,6 @@ input[type=date],select,textarea{
   </label>
   <label class="tab" for="tab-recup">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 8.5C20 5.5 17.5 4 15.5 4 13.8 4 12 5.5 12 5.5S10.2 4 8.5 4C6.5 4 4 5.5 4 8.5c0 4 8 11 8 11s8-7 8-11z"/></svg>Recuperación
-  </label>
-  <label class="tab" for="tab-vivo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>Vista en vivo
   </label>
 </div>
 
@@ -2536,7 +2536,8 @@ function nuevoRegistro(){
   initDefaults();
   precargarFarmacos();
   borrarSesionGuardada();
-  document.querySelector('label.tab').click();
+  /* Vuelve a "Paciente" (no a la primera pestaña, que ahora es Vista en vivo) */
+  document.querySelector('label.tab[for="tab-paciente"]').click();
   toast('Nuevo registro iniciado');
 }
 
