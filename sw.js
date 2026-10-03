@@ -4,7 +4,7 @@
    - Sin señal: sirve la última copia guardada, de modo que la app abre igual
      en pabellón aunque no haya internet.
    Para forzar una recarga completa del caché, sube CACHE_VERSION. */
-const CACHE_VERSION = 'somnus-v1';
+const CACHE_VERSION = 'somnus-v2';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {

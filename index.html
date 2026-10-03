@@ -285,6 +285,7 @@ table.reg tr:hover td:first-child{background:var(--surf)}
 .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
 /* Valor arrastrado del registro anterior: se ve atenuado hasta que lo confirmas o editas */
 .tw-vital-input[data-arrastrado="1"]{opacity:.45;font-style:italic}
+.tw-vital-input[data-auto="1"]{font-style:italic}
 @media print{.topbar,.tabs,.fab{display:none}}
 
 /* ── Fallbacks Safari ≤13 / iOS ≤13 ── */
@@ -336,6 +337,9 @@ input[type=date],select,textarea{
   </div>
   <div class="topbar-actions">
     <span id="guardado-ind" aria-live="polite"></span>
+    <button class="btn btn-sm btn-icon" data-action="openHistorial" title="Historial de casos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+    </button>
     <button class="btn btn-sm btn-icon" data-action="exportarBorrador" title="Exportar borrador JSON">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </button>
@@ -463,10 +467,10 @@ input[type=date],select,textarea{
         <span id="asaBadge"></span>
       </div>
       <div class="field"><label>Estado preanestésico</label>
-        <select id="f_estado_pre"><option>Tranquilo</option><option>Nervioso/ansioso</option><option>Agresivo</option><option>Deprimido</option><option>Estuporoso</option></select>
+        <select id="f_estado_pre"><option value="">—</option><option>Tranquilo</option><option>Nervioso/ansioso</option><option>Agresivo</option><option>Deprimido</option><option>Estuporoso</option></select>
       </div>
       <div class="field"><label>Ayuno sólido</label>
-        <select id="f_ayuno"><option>Desconocido</option><option>No</option><option>Parcial</option><option selected>Sí</option></select>
+        <select id="f_ayuno"><option value="">—</option><option>Desconocido</option><option>No</option><option>Parcial</option><option>Sí</option></select>
       </div>
       <div class="field"><label>Dolor pre (0-10)</label><input type="number" min="0" max="10" id="f_dolor_pre" placeholder="0"></div>
     </div>
@@ -479,13 +483,13 @@ input[type=date],select,textarea{
     </div>
     <div class="grid g4" style="margin-top:11px">
       <div class="field"><label>Mucosas</label>
-        <select id="f_mucosas"><option>Rosadas</option><option>Pálidas</option><option>Cianóticas</option><option>Ictéricas</option><option>Congestivas</option></select>
+        <select id="f_mucosas"><option value="">—</option><option>Rosadas</option><option>Pálidas</option><option>Cianóticas</option><option>Ictéricas</option><option>Congestivas</option></select>
       </div>
       <div class="field"><label>TLLC</label>
-        <select id="f_tllc"><option>Normal (&lt;2s)</option><option>Prolongado (&gt;2s)</option></select>
+        <select id="f_tllc"><option value="">—</option><option>Normal (&lt;2s)</option><option>Prolongado (&gt;2s)</option></select>
       </div>
       <div class="field"><label>Deshidratación</label>
-        <select id="f_deshid"><option>No evidente</option><option>~5%</option><option>6-8%</option><option>8-10%</option><option>&gt;10%</option></select>
+        <select id="f_deshid"><option value="">—</option><option>No evidente</option><option>~5%</option><option>6-8%</option><option>8-10%</option><option>&gt;10%</option></select>
       </div>
       <div class="field"><label>Glucemia (mg/dL)</label><input type="number" id="f_glucosa" placeholder="—"></div>
     </div>
@@ -540,7 +544,7 @@ input[type=date],select,textarea{
         <select id="f_inhalatorio"><option value="">—</option><option>Desflurano</option><option>Isoflurano</option><option>Sevoflurano</option><option>N/A</option></select>
       </div>
       <div class="field"><label>Circuito</label>
-        <select id="f_circuito"><option>Bain</option><option>Con reinhalación (círculo)</option><option>Jackson-Rees</option><option>Mapleson</option><option selected>Sin reinhalación</option></select>
+        <select id="f_circuito"><option value="">—</option><option>Bain</option><option>Con reinhalación (círculo)</option><option>Jackson-Rees</option><option>Mapleson</option><option>Sin reinhalación</option></select>
       </div>
     </div>
     <div class="sub-label">Modo ventilatorio</div>
@@ -621,7 +625,7 @@ input[type=date],select,textarea{
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--teal);flex-shrink:0"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>
     <div style="flex:1;min-width:180px">
       <div style="font-weight:600;color:var(--ink)">El registro de constantes se mudó a "Vista en vivo"</div>
-      <p class="hint" style="margin-top:2px">Ahí encontrás la grilla de parámetros con alerta de color, la calculadora de dosis por peso y los accesos rápidos de inducción/extubación.</p>
+      <p class="hint" style="margin-top:2px">Ahí encontrás la grilla de parámetros con alerta de color, la tabla de dosis de emergencia y los accesos rápidos de inducción/extubación.</p>
     </div>
     <label for="tab-vivo" class="btn btn-primary" style="cursor:pointer">Ir a Vista en vivo</label>
   </div>
@@ -767,7 +771,7 @@ input[type=date],select,textarea{
     </div>
     <div class="grid g3">
       <div class="field"><label>Tipo de recuperación</label>
-        <select id="f_tipo_recup"><option>Rápida y suave</option><option>Normal</option><option>Prolongada</option><option>Agitada / disfórica</option><option>Complicada</option></select>
+        <select id="f_tipo_recup"><option value="">—</option><option>Rápida y suave</option><option>Normal</option><option>Prolongada</option><option>Agitada / disfórica</option><option>Complicada</option></select>
       </div>
       <div class="field"><label>Dolor post (0-10)</label><input type="number" min="0" max="10" id="f_dolor_post" placeholder="0"></div>
       <div class="field"><label>Volumen total fluidos (mL)</label><input type="number" id="f_vol_total" placeholder="—"></div>
@@ -839,6 +843,7 @@ input[type=date],select,textarea{
       <button class="btn btn-primary" data-action="registrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Registrar ahora</button>
       <button class="btn btn-sm" data-action="limpiarReg">Limpiar campos</button>
     </div>
+    <p class="hint" style="margin-top:8px">Los valores atenuados vienen del registro anterior. Tócalos para confirmarlos; si no los confirmas, no se guardan en este registro.</p>
   </div>
 
   <div class="card">
@@ -1410,34 +1415,62 @@ let params=[
 ];
 
 /* ============ CRONÓMETRO ============ */
+/* El tiempo se calcula desde el reloj del dispositivo (hora de inicio guardada),
+   no sumando segundos: así no se atrasa con la pantalla bloqueada o la app en
+   segundo plano, y se recupera tras recargar o reabrir la app. */
+let timerStartMs=null;
+function tickTimer(){
+  if(timerRunning && timerStartMs!=null) timerSecs=Math.max(0,Math.floor((Date.now()-timerStartMs)/1000));
+  const el=document.getElementById('timer'); if(el) el.textContent=fmt(timerSecs);
+}
+function iniciarIntervaloTimer(){
+  clearInterval(timerInt);
+  timerInt=setInterval(tickTimer,1000);
+  tickTimer();
+}
+function pintarBotonTimer(estado){
+  const btn=document.getElementById('timerBtn'); if(!btn) return;
+  if(estado==='run') btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pausar';
+  else btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> '+(estado==='pause'?'Reanudar':'Iniciar');
+}
 function toggleTimer(){
-  const btn=document.getElementById('timerBtn');
   if(!timerRunning){
     timerRunning=true;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pausar';
+    timerStartMs=Date.now()-timerSecs*1000;
+    pintarBotonTimer('run');
     document.getElementById('timer').classList.add('run');
-    timerInt=setInterval(()=>{timerSecs++;document.getElementById('timer').textContent=fmt(timerSecs);},1000);
+    iniciarIntervaloTimer();
     const hi=document.getElementById('f_hora_inicio');
     if(hi && !hi.value){const n=new Date();hi.value=p2(n.getHours())+':'+p2(n.getMinutes());}
     startCountdown();
   }else{
-    timerRunning=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Reanudar';
+    tickTimer();
+    timerRunning=false; timerStartMs=null;
+    pintarBotonTimer('pause');
     document.getElementById('timer').classList.remove('run');
     clearInterval(timerInt);clearInterval(cdInt);
   }
+  guardarSesion(true);
+}
+function detenerTimer(){
+  clearInterval(timerInt);clearInterval(cdInt);
+  timerRunning=false;timerSecs=0;timerStartMs=null;cdDeadline=null;
+  const t=document.getElementById('timer');
+  if(t){t.textContent='00:00:00';t.classList.remove('run');}
+  pintarBotonTimer('init');
+  const cw=document.getElementById('countdownWrap');if(cw)cw.style.display='none';
 }
 function resetTimer(){
   if(timerSecs>0 && !confirm('¿Reiniciar el cronómetro a cero?'))return;
-  clearInterval(timerInt);clearInterval(cdInt);
-  timerRunning=false;timerSecs=0;
-  document.getElementById('timer').textContent='00:00:00';
-  document.getElementById('timer').classList.remove('run');
-  document.getElementById('timerBtn').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Iniciar';
-  const cw=document.getElementById('countdownWrap');if(cw)cw.style.display='none';
+  detenerTimer();
+  guardarSesion(true);
 }
 function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return [h,m,x].map(p2).join(':');}
 function p2(n){return String(n).padStart(2,'0');}
+/* Fecha local del dispositivo en formato AAAA-MM-DD (no UTC) */
+function fechaLocalISO(d){d=d||new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+/* Escapa texto de usuario antes de insertarlo como HTML */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 /* ============ COUNTDOWN INTERVALO ============ */
 /* Insignia persistente de "falta registrar": a diferencia del pulso de 4s
@@ -1454,18 +1487,24 @@ const Reminder=(()=>{
   return {markPending,reset};
 })();
 
+/* La cuenta regresiva también se calcula contra el reloj (hora límite) */
+let cdDeadline=null;
+function intervaloSeg(){const v=parseInt(document.getElementById('f_intervalo').value);return isNaN(v)?null:v;}
+function reiniciarCountdown(){const iv=intervaloSeg();cdDeadline=iv?Date.now()+iv*1000:null;}
 function startCountdown(){
   clearInterval(cdInt);
-  const iv=document.getElementById('f_intervalo').value;
+  const iv=intervaloSeg();
   const cw=document.getElementById('countdownWrap');
-  if(iv==='manual'){cw.style.display='none';return;}
+  if(!iv){cw.style.display='none';cdDeadline=null;return;}
   cw.style.display='inline';
-  cdRemaining=parseInt(iv);
+  reiniciarCountdown();
   renderCountdown();
   cdInt=setInterval(()=>{
-    cdRemaining--;renderCountdown();
-    if(cdRemaining<=0){
-      cdRemaining=parseInt(document.getElementById('f_intervalo').value)||300;
+    if(cdDeadline==null)return;
+    renderCountdown();
+    if(Date.now()>=cdDeadline){
+      const iv2=intervaloSeg()||300;
+      cdDeadline=Date.now()+iv2*1000;
       document.getElementById('countdown').classList.add('due');
       playAlarm('reminder');
       toast('⏱ Momento de registrar parámetros');
@@ -1474,8 +1513,12 @@ function startCountdown(){
     }
   },1000);
 }
-function renderCountdown(){document.getElementById('countdown').textContent=fmt(Math.max(0,cdRemaining));}
+function renderCountdown(){
+  cdRemaining=cdDeadline==null?0:Math.ceil((cdDeadline-Date.now())/1000);
+  document.getElementById('countdown').textContent=fmt(Math.max(0,cdRemaining));
+}
 function onIntervalChange(){if(timerRunning)startCountdown();}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){tickTimer();if(cdDeadline!=null)renderCountdown();}});
 
 /* ============ HELPERS ============ */
 function val(id){const e=document.getElementById(id);return e?e.value.trim():'';}
@@ -1543,6 +1586,7 @@ function singleToggle(btn,group){
       if(oi) oi.style.display = 'none';
     }
   });
+  guardarSesion(false);
 }
 function multiToggle(btn){
   btn.classList.toggle('on');
@@ -1552,6 +1596,7 @@ function multiToggle(btn){
     var inp = document.getElementById(target);
     if(inp) inp.style.display = btn.classList.contains('on') ? 'block' : 'none';
   }
+  guardarSesion(false);
 }
 function getToggles(group){
   return Array.from(document.querySelectorAll('#'+group+' .toggle.on')).map(function(t){
@@ -1650,7 +1695,7 @@ function viaSelect(sel){
 function indicacionSelect(sel){
   return '<select data-f="indicacion"><option value="">Indicado por…</option>'+optList(['Cirujano','Anestesiólogo'],sel,true)+'</select>';
 }
-function onDrugSelectChange(sel){
+function onDrugSelectChange(sel,noFocus){
   const row=sel.closest('.drug-row');
   let freeInput=row.querySelector('input[data-f="farmaco_otro"]');
   if(sel.value==='Otro'){
@@ -1660,12 +1705,12 @@ function onDrugSelectChange(sel){
       freeInput.setAttribute('data-f','farmaco_otro');
       freeInput.style.gridColumn='1 / -2';
       sel.insertAdjacentElement('afterend',freeInput);
-      freeInput.focus();
+      if(!noFocus) freeInput.focus();
     }
   } else if(freeInput){ freeInput.remove(); }
   if(row.closest('#list-mant')) refreshMantOptions();
 }
-function onBlockSelectChange(sel){
+function onBlockSelectChange(sel,noFocus){
   const row=sel.closest('.drug-row');
   let freeInput=row.querySelector('input[data-f="bloqueo_otro"]');
   if(sel.value==='Otro'){
@@ -1676,12 +1721,12 @@ function onBlockSelectChange(sel){
       freeInput.style.cssText='font-size:15px;margin-top:6px;grid-column:1/-1;width:100%';
       /* Insertar debajo del select de bloqueo, dentro de la fila */
       row.appendChild(freeInput);
-      freeInput.focus();
+      if(!noFocus) freeInput.focus();
     }
   } else if(freeInput){ freeInput.remove(); }
 }
 function xBtn(id){return '<button class="x-btn" data-action="removeDrugRow" data-id="'+id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>';}
-function removeDrugRow(id){const e=document.getElementById(id);const inMant=e&&e.closest('#list-mant');if(e)e.remove();if(inMant)refreshMantOptions();}
+function removeDrugRow(id){const e=document.getElementById(id);const inMant=e&&e.closest('#list-mant');if(e)e.remove();if(inMant)refreshMantOptions();guardarSesion(true);}
 
 function getDrugName(row){
   const sel=row.querySelector('select[data-f="farmaco"]');
@@ -1750,15 +1795,21 @@ const RANGOS_ESPECIE={
   'Canino':{fc:[60,160], fr:[8,25],  pam:[60,100], temp:[36.5,39.2]},
   'Felino':{fc:[120,220],fr:[10,30], pam:[60,100], temp:[36.5,39.5]},
   'Equino':{fc:[26,50],  fr:[6,16],  pam:[70,110], temp:[36.5,38.5]},
-  'Conejo':{fc:[150,300],fr:[30,60], pam:[60,100], temp:[38.0,40.0]},
+  'Lagomorfo':{fc:[150,300],fr:[30,60], pam:[60,100], temp:[38.0,40.0]},
 };
+/* Parámetros cuyo rango normal depende de la especie: si la especie elegida no
+   tiene rangos validados en la tabla, no se colorean (evita falsas alarmas). */
+const PARAMS_DEP_ESPECIE=['fc','fr','pas','pad','pam','temp'];
 function aplicarRangosEspecie(){
-  const r=RANGOS_ESPECIE[val('f_especie')];
+  const esp=val('f_especie');
+  const r=RANGOS_ESPECIE[esp];
+  const sinTabla=!!esp && !r;
   params.forEach(p=>{
     if(p.base===undefined) p.base=[p.lo,p.hi];   /* conserva el rango original */
     const rr=r&&r[p.key];
-    p.lo=rr?rr[0]:p.base[0];
-    p.hi=rr?rr[1]:p.base[1];
+    if(rr){p.lo=rr[0];p.hi=rr[1];}
+    else if(sinTabla && PARAMS_DEP_ESPECIE.includes(p.key)){p.lo=null;p.hi=null;}
+    else {p.lo=p.base[0];p.hi=p.base[1];}
   });
   /* recolorea sin perder lo ya tecleado */
   params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el)onRegInputChange(el);});
@@ -1782,15 +1833,15 @@ function renderRegGrid(){
   const grid=document.getElementById('regGrid');
   grid.innerHTML=params.map(p=>{
     const rm=p.fixed?'':'<button type="button" class="tw-text-slate-300 hover:tw-text-red-500 tw-transition tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer" title="Quitar parámetro" data-action="removeParam" data-key="'+p.key+'">✕</button>';
-    const auto=p.key==='pam';
+    const auto=false, esPam=p.key==='pam';
     const oninput=(p.key==='pas'||p.key==='pad')?' oninput="calcPAM()"':'';
-    const autoTag=auto?' <span class="tw-font-normal tw-normal-case tw-text-emerald-600">(auto)</span>':'';
+    const autoTag=esPam?' <span class="tw-font-normal tw-normal-case tw-text-emerald-600">(medida o est.)</span>':'';
     return '<div class="'+VITAL_TILE_BASE+' '+VITAL_TILE_STYLES.neutral.tile+'" data-tile-key="'+p.key+'">'+
            '<div class="tw-flex tw-items-center tw-justify-between tw-gap-1">'+
-           '<span class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">'+p.label+(p.unit?' <span class="tw-font-normal tw-normal-case tw-text-slate-400">('+p.unit+')</span>':'')+autoTag+'</span>'+
+           '<span class="tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-text-slate-500">'+esc(p.label)+(p.unit?' <span class="tw-font-normal tw-normal-case tw-text-slate-400">('+esc(p.unit)+')</span>':'')+autoTag+'</span>'+
            rm+'</div>'+
            '<input type="number" step="any" inputmode="decimal" id="r_'+p.key+'" data-key="'+p.key+'" placeholder="—" class="'+VITAL_INPUT_BASE+' '+VITAL_TILE_STYLES.neutral.input+'"'+
-           (auto?' readonly title="Se calcula automáticamente desde PAS y PAD"':'')+oninput+'>'+
+           (esPam?' title="Escribe la PAM medida. Si la dejas vacía, se estima desde PAS y PAD."':'')+oninput+'>'+
            (auto?'':'<div class="tw-flex tw-gap-1 tw-mt-0.5">'+
              '<button type="button" data-action="bumpParam" data-key="'+p.key+'" data-delta="-1" aria-label="Bajar '+p.label+'" class="tw-flex-1 tw-min-h-[40px] tw-rounded-lg tw-bg-slate-100 hover:tw-bg-slate-200 tw-text-slate-700 tw-text-xl tw-font-bold tw-leading-none tw-border-0 tw-cursor-pointer active:tw-scale-95 tw-transition">−</button>'+
              '<button type="button" data-action="bumpParam" data-key="'+p.key+'" data-delta="1" aria-label="Subir '+p.label+'" class="tw-flex-1 tw-min-h-[40px] tw-rounded-lg tw-bg-slate-100 hover:tw-bg-slate-200 tw-text-slate-700 tw-text-xl tw-font-bold tw-leading-none tw-border-0 tw-cursor-pointer active:tw-scale-95 tw-transition">+</button>'+
@@ -1798,7 +1849,11 @@ function renderRegGrid(){
            '</div>';
   }).join('');
   grid.querySelectorAll('.tw-vital-input').forEach(input=>{
-    input.addEventListener('input',()=>{delete input.dataset.arrastrado;onRegInputChange(input);});
+    input.addEventListener('input',()=>{delete input.dataset.arrastrado;if(input.dataset.key==='pam')delete input.dataset.auto;onRegInputChange(input);});
+    /* Tocar un valor atenuado (arrastrado del registro anterior) lo confirma como medido */
+    const confirmar=()=>{if(input.dataset.arrastrado==='1'){delete input.dataset.arrastrado;onRegInputChange(input);}};
+    input.addEventListener('focus',confirmar);
+    input.addEventListener('click',confirmar);
   });
 }
 
@@ -1822,15 +1877,21 @@ function onRegInputChange(input){
   }
 }
 
-/* PAM = PAD + 1/3 (PAS − PAD) */
+/* PAM = PAD + 1/3 (PAS − PAD), solo como ESTIMACIÓN si no se ingresó la PAM medida.
+   Los valores arrastrados sin confirmar no se usan para estimar. */
 function calcPAM(){
-  const pas=parseFloat(val('r_pas')), pad=parseFloat(val('r_pad'));
   const out=document.getElementById('r_pam');
   if(!out)return;
+  const medida=out.value!=='' && out.dataset.auto!=='1' && out.dataset.arrastrado!=='1';
+  if(medida)return;
+  const pasEl=document.getElementById('r_pas'), padEl=document.getElementById('r_pad');
+  const num=el=>(!el||el.dataset.arrastrado==='1')?NaN:parseFloat(el.value);
+  const pas=num(pasEl), pad=num(padEl);
   if(!isNaN(pas)&&!isNaN(pad)&&pas>=pad){
     out.value=Math.round(pad+(pas-pad)/3);
-  }else{
-    out.value='';
+    out.dataset.auto='1'; delete out.dataset.arrastrado;
+  }else if(out.dataset.auto==='1'){
+    out.value=''; delete out.dataset.auto;
   }
   onRegInputChange(out);
 }
@@ -1850,7 +1911,7 @@ function renderRegTable(){
   const labelStyle='font-weight:600;color:var(--muted);white-space:nowrap';
 
   thead.innerHTML='<tr><th>Hora</th>'+
-    registros.map((r,i)=>'<th><input type="time" value="'+(r.time||'')+'" data-action="editRegTime" data-idx="'+i+'" '+
+    registros.map((r,i)=>'<th><input type="time" value="'+esc(r.time||'')+'" data-action="editRegTime" data-idx="'+i+'" '+
       'style="border:none;background:transparent;font-size:13px;color:var(--teal-d);font-weight:600;'+
       'width:72px;padding:2px;cursor:pointer;font-family:inherit;text-align:center"></th>').join('')+
     '</tr>';
@@ -1858,8 +1919,8 @@ function renderRegTable(){
   const rows=[];
   rows.push('<tr><td style="'+labelStyle+'">Min</td>'+registros.map(r=>'<td>'+r.min+'</td>').join('')+'</tr>');
   params.forEach(p=>{
-    rows.push('<tr><td style="'+labelStyle+'">'+p.label+'</td>'+
-      registros.map((r,i)=>'<td><input type="number" step="any" value="'+(r.vals[p.key]!=null?r.vals[p.key]:'')+'" '+
+    rows.push('<tr><td style="'+labelStyle+'">'+esc(p.label)+'</td>'+
+      registros.map((r,i)=>'<td><input type="number" step="any" value="'+esc(r.vals[p.key]!=null?r.vals[p.key]:'')+'" '+
         'data-action="editRegVal" data-idx="'+i+'" data-key="'+p.key+'" placeholder="—" style="'+valStyle+'"></td>').join('')+
       '</tr>');
   });
@@ -1893,7 +1954,7 @@ function renderObsIntraq(){
   list.innerHTML=notas.map(r=>{
     const parts=[r.time||(r.min+"'")];if(r.plano)parts.push(r.plano);
     return '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px">'+
-      '<span style="font-weight:600;color:var(--teal-d)">'+parts.join(' · ')+'</span> — '+
+      '<span style="font-weight:600;color:var(--teal-d)">'+esc(parts.join(' · '))+'</span> — '+
       '<span>'+String(r.nota).replace(/</g,'&lt;')+'</span></div>';
   }).join('');
   renderVivoLog();
@@ -1911,7 +1972,7 @@ function renderVivoLog(){
   el.innerHTML=recientes.map(r=>{
     const hora=r.time||(r.min+"'");
     return '<div class="tw-flex tw-items-start tw-gap-2.5 tw-px-3.5 tw-py-2.5">'+
-      '<span class="tw-font-semibold tw-text-emerald-700 tw-tabular-nums tw-whitespace-nowrap tw-text-sm">'+hora+'</span>'+
+      '<span class="tw-font-semibold tw-text-emerald-700 tw-tabular-nums tw-whitespace-nowrap tw-text-sm">'+esc(hora)+'</span>'+
       '<span class="tw-text-slate-700 tw-text-sm">'+String(r.nota).replace(/</g,'&lt;')+'</span>'+
       '</div>';
   }).join('');
@@ -1938,7 +1999,7 @@ function confirmAddParam(){
   if(!label){toast('Ingresa un nombre');return;}
   const key='custom_'+Date.now().toString(36);
   params.push({key,label,unit,fixed:false,lo:null,hi:null});
-  renderRegGrid();renderRegTable();
+  renderRegGrid();renderRegTable();guardarSesion(true);
   closeModal();toast('Parámetro "'+label+'" agregado');
 }
 function removeParam(key){
@@ -1946,53 +2007,67 @@ function removeParam(key){
   if(!p||p.fixed)return;
   if(!confirm('¿Quitar el parámetro "'+p.label+'"? Los valores ya registrados en la tabla se conservan.'))return;
   params=params.filter(x=>x.key!==key);
-  renderRegGrid();renderRegTable();
+  renderRegGrid();renderRegTable();guardarSesion(true);
 }
 function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('modalBg').innerHTML='';}
 
 /* ============ REGISTRAR ============ */
 function registrar(){
+  tickTimer();
   calcPAM();
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
   const min=timerRunning||timerSecs>0?String(Math.floor(timerSecs/60)):'—';
   const vals={};
-  let any=false;
+  let any=false, omitidos=0, pamEst=false;
   params.forEach(p=>{
     const el=document.getElementById('r_'+p.key);
-    const v=el?el.value.trim():'';
+    let v=el?el.value.trim():'';
+    /* Un valor arrastrado del registro anterior que no se confirmó NO es una medición nueva */
+    if(v && el.dataset.arrastrado==='1'){v='';omitidos++;}
+    if(v && p.key==='pam' && el.dataset.auto==='1') pamEst=true;
     vals[p.key]=v;
     if(v)any=true;
   });
   const plano=val('r_plano');const nota=val('r_nota');
-  if(!any && !plano && !nota){toast('Ingresa al menos un valor');return;}
-  registros.push({time,min,vals,plano,nota,t:timerSecs});
-  /* Nota: la alerta de valor fuera de rango ya se dispara en vivo, tecla a
-     tecla, desde onRegInputChange() — no hace falta repetirla acá. */
+  if(!any && !plano && !nota){
+    toast(omitidos?'Los valores atenuados no están confirmados: tócalos o escribe uno nuevo':'Ingresa al menos un valor');
+    return;
+  }
+  const reg={time,min,vals,plano,nota,t:timerSecs};
+  if(pamEst) reg.pamEst=true;
+  registros.push(reg);
   renderRegTable();
   renderChart();
   prefillDesdeUltimo();
   guardarSesion(true);
   Reminder.reset();
-  if(timerRunning && document.getElementById('f_intervalo').value!=='manual'){
-    cdRemaining=parseInt(document.getElementById('f_intervalo').value);
-  }
-  toast('✓ Registro guardado · '+time);
+  if(timerRunning && intervaloSeg()) reiniciarCountdown();
+  toast('✓ Registro guardado · '+time+(omitidos?' · '+omitidos+' valor(es) sin confirmar no se guardaron':''));
 }
 function limpiarReg(){
-  params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el){el.value='';delete el.dataset.arrastrado;onRegInputChange(el);}});
+  params.forEach(p=>{const el=document.getElementById('r_'+p.key);if(el){el.value='';delete el.dataset.arrastrado;delete el.dataset.auto;onRegInputChange(el);}});
   const pl=document.getElementById('r_plano');if(pl)pl.value='';
   const nt=document.getElementById('r_nota');if(nt)nt.value='';
 }
-/* Tras registrar, arrastra los últimos valores en vez de vaciar la grilla:
-   en la siguiente toma solo corriges lo que cambió. La nota no se arrastra. */
+/* Último valor conocido de un parámetro (el registro más reciente que lo tenga) */
+function ultimoValor(key){
+  for(let i=registros.length-1;i>=0;i--){
+    const v=registros[i].vals&&registros[i].vals[key];
+    if(v!==undefined&&v!==null&&v!=='')return v;
+  }
+  return '';
+}
+/* Tras registrar, muestra atenuados los últimos valores conocidos: en la siguiente
+   toma solo corriges lo que cambió y tocas lo que confirmas. La nota no se arrastra. */
 function prefillDesdeUltimo(){
   const last=registros[registros.length-1];
   if(!last){limpiarReg();return;}
   params.forEach(p=>{
     const el=document.getElementById('r_'+p.key);
     if(!el)return;
-    const v=last.vals[p.key];
+    const v=ultimoValor(p.key);
+    delete el.dataset.auto;
     if(v){el.value=v;el.dataset.arrastrado='1';}
     else {el.value='';delete el.dataset.arrastrado;}
     onRegInputChange(el);
@@ -2011,10 +2086,11 @@ function bumpParam(key,delta){
   next=Math.round(next*10)/10;
   el.value=next<0?0:next;
   delete el.dataset.arrastrado;
+  if(key==='pam')delete el.dataset.auto;
   if(key==='pas'||key==='pad')calcPAM();
   onRegInputChange(el);
 }
-function delReg(i){registros.splice(i,1);renderRegTable();renderChart();}
+function delReg(i){registros.splice(i,1);renderRegTable();renderChart();guardarSesion(true);}
 function editRegTime(idx, val){
   if(idx >= 0 && idx < registros.length){
     registros[idx].time = val;
@@ -2027,6 +2103,7 @@ function editRegVal(idx, key, value){
   if(idx<0||idx>=registros.length)return;
   if(!registros[idx].vals)registros[idx].vals={};
   registros[idx].vals[key]=(value||'').trim();
+  if(key==='pam') delete registros[idx].pamEst;
   renderChart();
   guardarSesion(true);
 }
@@ -2077,6 +2154,20 @@ const CHART_SERIES=[
   {key:'pam',   label:'PAm',  color:'#185FA5', sym:'bp'},
 ];
 
+/* Para cruzar la medianoche: cada hora HH:MM se ubica dentro de ±12 h de una
+   hora de referencia (el primer registro o, si no hay, la inducción). */
+function anclaMin(){
+  for(const r of registros){const m=chartClockMin(r.time);if(m!=null)return m;}
+  for(const s of [val('f_hora_induccion'),val('f_hora_inicio')]){const m=chartClockMin(s);if(m!=null)return m;}
+  for(const n of chartNotes){const m=chartClockMin(n.time);if(m!=null)return m;}
+  return null;
+}
+function minAbs(s,ancla){
+  const m=chartClockMin(s);
+  if(m==null||ancla==null)return m;
+  const d=m-ancla;
+  return d<-720?m+1440:(d>720?m-1440:m);
+}
 function renderChart(){
   const cv=document.getElementById('trendChart');
   const empty=document.getElementById('chartEmpty');
@@ -2098,20 +2189,21 @@ function renderChart(){
 
   /* Eje X: posición según la hora real de registro (HH:MM) de la tabla.
      Fallback al cronómetro (t) o al índice si la hora no es válida. */
+  const A=anclaMin();
   function evX(o){
     if(!o)return null;
-    const c=chartClockMin(o.time); if(c!=null)return c;
+    const c=minAbs(o.time,A); if(c!=null)return c;
     return o.t!=null?o.t/60:null;
   }
-  const xs=pts.map((r,i)=>{const c=chartClockMin(r.time);return c!=null?c:(r.t!=null?r.t/60:i);});
+  const xs=pts.map((r,i)=>{const c=minAbs(r.time,A);return c!=null?c:(r.t!=null?r.t/60:i);});
   const induccionTime=val('f_hora_induccion');
-  const indX=induccionTime?chartClockMin(induccionTime):null;
+  const indX=induccionTime?minAbs(induccionTime,A):null;
   const extubTime=val('f_extub');
-  const extX=extubTime?chartClockMin(extubTime):null;
+  const extX=extubTime?minAbs(extubTime,A):null;
   const inicioCxTime=val('f_hora_inicio');
-  const iniX=inicioCxTime?chartClockMin(inicioCxTime):null;
+  const iniX=inicioCxTime?minAbs(inicioCxTime,A):null;
   const finCxTime=val('f_hora_fin');
-  const finX=finCxTime?chartClockMin(finCxTime):null;
+  const finX=finCxTime?minAbs(finCxTime,A):null;
   const noteX=chartNotes.map(evX);
   const allTimeVals=[...xs,indX,extX,iniX,finX,...noteX].filter(v=>v!=null);
   let xMin=allTimeVals.length?Math.min(...allTimeVals):0;
@@ -2155,9 +2247,18 @@ function renderChart(){
     const xx=X(xs[i]);
     ctx.strokeStyle='#e5ebe7'; ctx.lineWidth=0.5;
     ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke();
-    ctx.fillStyle='#6b7670';
-    ctx.fillText(r.time||Math.round(xs[i])+"'",xx,padT+plotH+5);
   });
+  /* Etiquetas de hora a intervalos regulares (no una por registro, que se superponen) */
+  (function(){
+    const rango=xMax-xMin, paso=rango<=60?10:rango<=180?15:rango<=360?30:60;
+    ctx.fillStyle='#6b7670';
+    for(let v=Math.ceil(xMin/paso)*paso; v<=xMax; v+=paso){
+      const xx=X(v), mm=((v%1440)+1440)%1440;
+      ctx.strokeStyle='#bcc5c0'; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.moveTo(xx,padT+plotH); ctx.lineTo(xx,padT+plotH+3); ctx.stroke();
+      ctx.fillText(p2(Math.floor(mm/60))+':'+p2(mm%60),xx,padT+plotH+5);
+    }
+  })();
   ctx.textAlign='center'; ctx.fillStyle='#9aa39e'; ctx.font='10px -apple-system,Arial,sans-serif';
   ctx.fillText('Hora de registro',padL+plotW/2,padT+plotH+19);
 
@@ -2345,6 +2446,7 @@ window.addEventListener('resize',()=>{if(registros.length||chartNotes.length||va
 /* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
 /* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
 function openChartNote(){
+  tickTimer();
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
   const t=timerSecs;
@@ -2393,16 +2495,13 @@ function renderChartNotes(){
   if(!section||!list)return;
   if(!chartNotes.length){section.style.display='none';list.innerHTML='';return;}
   section.style.display='block';
-  const ordered=chartNotes.slice().sort((a,b)=>{
-    const ca=chartClockMin(a.time),cb=chartClockMin(b.time);
-    return (ca==null?0:ca)-(cb==null?0:cb);
-  });
+  const ordered=notasOrdenadas();
   list.innerHTML=ordered.map(n=>{
     const idx=chartNotes.indexOf(n);
     return '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line-soft)">'+
-      '<input type="time" value="'+n.time+'" data-action="editChartNoteTime" data-idx="'+idx+'" '+
+      '<input type="time" value="'+esc(n.time)+'" data-action="editChartNoteTime" data-idx="'+idx+'" '+
         'style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:12px;font-weight:600;color:var(--teal-d);font-family:inherit;width:88px;flex-shrink:0">'+
-      '<span style="flex:1;font-size:13px;color:var(--ink)">'+n.notes.join('<br>')+'</span>'+
+      '<span style="flex:1;font-size:13px;color:var(--ink)">'+n.notes.map(esc).join('<br>')+'</span>'+
       '<button data-action="delChartNote" data-idx="'+idx+'" title="Quitar nota" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;flex-shrink:0">✕</button>'+
       '</div>';
   }).join('');
@@ -2429,6 +2528,7 @@ const EMERGENCIA_MANIOBRAS=['Inicio RCP','Adrenalina','Atropina','Desfibrilació
 
 /* Registra un evento con la hora actual; aparece en el gráfico y en las notas */
 function registrarEventoEmergencia(texto){
+  tickTimer();
   const now=new Date();
   const time=p2(now.getHours())+':'+p2(now.getMinutes());
   const grupo=chartNotes.find(n=>n.time===time);
@@ -2444,13 +2544,10 @@ function registrarEventoEmergencia(texto){
   if(log) log.innerHTML=renderEmergenciaLog();
 }
 function renderEmergenciaLog(){
-  const ev=chartNotes.slice().sort((a,b)=>{
-    const ca=chartClockMin(a.time),cb=chartClockMin(b.time);
-    return (ca==null?0:ca)-(cb==null?0:cb);
-  });
+  const ev=notasOrdenadas();
   if(!ev.length) return '<div style="color:var(--muted);font-size:13px">Sin eventos registrados</div>';
   return ev.map(n=>'<div style="display:flex;gap:8px;padding:3px 0;font-size:13px">'+
-    '<b style="color:var(--teal-d);min-width:42px">'+n.time+'</b><span>'+n.notes.join(' / ')+'</span></div>').join('');
+    '<b style="color:var(--teal-d);min-width:42px">'+esc(n.time)+'</b><span>'+esc(n.notes.join(' / '))+'</span></div>').join('');
 }
 function emergenciaPeso(){
   return parseFloat(val('f_peso')||(document.getElementById('vivo-peso')||{}).value||'')||0;
@@ -2505,7 +2602,7 @@ function renderScales(){
   ['mpa','ind','intub','recup'].forEach(name=>{
     const box=document.getElementById('sc-'+name);
     box.innerHTML=[1,2,3,4].map(n=>
-      '<button class="sbtn" data-action="setScale" data-name="'+name+'" data-n="'+n+'">'+n+'</button>'
+      '<button class="sbtn'+(scales[name]===n?' on':'')+'" data-action="setScale" data-name="'+name+'" data-n="'+n+'"'+(scales[name]===n?' style="background:'+cols[n-1]+'"':'')+'>'+n+'</button>'
     ).join('');
   });
 }
@@ -2517,459 +2614,361 @@ function setScale(name,n,btn){
     if(parseInt(b.dataset.n)===n){b.classList.add('on');b.style.background=cols[n];}
     else{b.classList.remove('on');b.style.background='';}
   });
+  guardarSesion(true);
 }
 
 /* ============ NUEVO REGISTRO ============ */
-function nuevoRegistro(){
-  if(!confirm('¿Iniciar un registro nuevo? Se borrarán todos los datos actuales.'))return;
-  document.querySelectorAll('input:not([type=hidden]),select,textarea').forEach(el=>{el.value='';});
+/* Devuelve el formulario a su estado inicial (valores por defecto del HTML),
+   sin tocar lo guardado. Lo usan "Nuevo", restaurar e importar, para que nunca
+   se mezclen datos de dos pacientes. */
+function limpiarFormulario(){
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(el.type==='radio'||el.type==='hidden'||el.type==='file')return;
+    if(el.closest('#modalBg'))return;
+    if(el.type==='checkbox'){el.checked=el.defaultChecked;return;}
+    if(el.tagName==='SELECT'){
+      let def=-1;Array.from(el.options).forEach((o,i)=>{if(o.defaultSelected)def=i;});
+      el.selectedIndex=def>=0?def:(el.options.length?0:-1);
+      return;
+    }
+    el.value=el.defaultValue;
+  });
+  document.querySelectorAll('.otro-input').forEach(i=>{i.style.display='none';});
   document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('on'));
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+  const ajo=document.getElementById('aj_farmaco_otro');if(ajo)ajo.remove();
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
   chartNotes=[];
   params=params.filter(p=>p.fixed);
-  renderRegGrid();renderRegTable();renderScales();renderChart();renderChartNotes();
-  refreshMantOptions&&refreshMantOptions();
-  document.querySelectorAll('.sbtn').forEach(b=>{b.classList.remove('on');b.style.background='';});
+  detenerTimer();
+  currentSid=nuevoSid();
+  renderRegGrid();aplicarRangosEspecie();renderRegTable();renderScales();renderChart();renderChartNotes();renderAjustesTabla();
+  refreshMantOptions();
   document.getElementById('asaBadge').innerHTML='';
-  resetTimer();
+  refreshVivoHeader();
+  const lv=document.getElementById('vivo-peso');if(lv)lv.value='';
+  Reminder.reset();
+}
+function nuevoRegistro(){
+  if(!confirm('¿Iniciar un registro nuevo? El caso actual se guardará en el Historial (botón del reloj, arriba) y el formulario quedará en blanco.'))return;
+  archivarActual();
+  limpiarFormulario();
   initDefaults();
   precargarFarmacos();
   borrarSesionGuardada();
   /* Vuelve a "Paciente" (no a la primera pestaña, que ahora es Vista en vivo) */
   document.querySelector('label.tab[for="tab-paciente"]').click();
-  toast('Nuevo registro iniciado');
+  toast('Nuevo registro iniciado · el anterior quedó en el Historial');
 }
 
 /* ============ EXPORTAR PDF ============ */
 function captureChartImage(){
-  if(!registros.length)return null;
+  if(!registros.length && !chartNotes.length)return null;
   try{
     const cv=document.getElementById('trendChart');
     if(!cv)return null;
     renderChart();
+    if(cv.style.display==='none')return null;
     return cv.toDataURL('image/png');
   }catch(e){return null;}
 }
-
-/* Dibuja la tabla de registro intraoperatorio con los parámetros en filas y la
-   hora en columnas (igual que en pantalla). El PDF tiene ancho fijo, así que si
-   hay más registros de los que caben legibles en una fila, se parte en bloques
-   apilados verticalmente, cada uno con su propio encabezado de horas. */
-function drawRegistroTranspuesto(doc,x,y,width,colors,headFont,bodyFont){
-  const labelW=Math.max(9,width*0.11);
-  const availW=width-labelW;
-  const minColW=8.5;
-  const perBlock=Math.max(3,Math.floor(availW/minColW));
-  const bodyRows=[
-    {label:'Min',get:r=>String(r.min)},
-    ...params.map(p=>({label:p.label.length>6?p.label.slice(0,6):p.label,get:r=>(r.vals[p.key]!=null&&r.vals[p.key]!==''?String(r.vals[p.key]):'—')})),
-    {label:'Plano',get:r=>(r.plano?(r.plano.length>10?r.plano.slice(0,10):r.plano):'—')},
-  ];
-  const rowH=registros.length>24?3.0:(registros.length>14?3.6:4.1);
-  for(let start=0;start<registros.length;start+=perBlock){
-    const block=registros.slice(start,start+perBlock);
-    const colW2=availW/block.length;
-    let yy=y;
-    doc.setFillColor(...colors.soft);doc.rect(x,yy-3.2,width,5,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(headFont);doc.setTextColor(...colors.tealD);
-    doc.text('Hora',x+labelW/2,yy,{align:'center'});
-    block.forEach((r,i)=>{doc.text(r.time||String(r.min),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
-    yy+=3;
-    doc.setDrawColor(...colors.teal);doc.setLineWidth(0.3);doc.line(x,yy-1.5,x+width,yy-1.5);
-    bodyRows.forEach((rd,ri)=>{
-      if(ri%2===1){doc.setFillColor(...colors.zebra);doc.rect(x,yy-2.4,width,rowH,'F');}
-      doc.setFont('helvetica','bold');doc.setFontSize(bodyFont);doc.setTextColor(...colors.grayT);
-      doc.text(rd.label,x+1.5,yy);
-      doc.setFont('helvetica','normal');doc.setTextColor(...colors.ink);
-      block.forEach((r,i)=>{doc.text(rd.get(r),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
-      yy+=rowH;
-    });
-    y=yy+2;
-  }
-  return y;
+/* Texto apto para las fuentes estándar del PDF (no tienen subíndices Unicode) */
+function pdfTxt(s){
+  return String(s==null?'':s).replace(/₀/g,'0').replace(/₁/g,'1').replace(/₂/g,'2').replace(/₃/g,'3')
+    .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/→/g,'->');
+}
+/* Abreviaturas fijas del plano anestésico para la tabla del PDF (con leyenda) */
+const PLANO_ABREV={'Superficial':'Sup','Quirúrgico ligero':'Q-lig','Quirúrgico medio':'Q-med','Quirúrgico profundo':'Q-prof'};
+/* Notas del gráfico ordenadas por hora (respeta el cruce de medianoche) */
+function notasOrdenadas(){
+  const A=anclaMin();
+  return chartNotes.slice().sort((a,b)=>{const ca=minAbs(a.time,A),cb=minAbs(b.time,A);return (ca==null?0:ca)-(cb==null?0:cb);});
 }
 
 function exportPDF(orient){
   /* dispatcher: elige orientación */
   if(orient===undefined){orient=(document.getElementById('f_orient')||{}).value||'portrait';}
-  if(orient==='landscape')return exportPDFLandscape();
-  return exportPDFPortrait();
+  return construirPDF(orient,true);
 }
 function setOrient(orient,btn){
   const hid=document.getElementById('f_orient');if(hid)hid.value=orient;
   document.querySelectorAll('#orientSeg .orient-opt').forEach(b=>b.classList.toggle('active',b===btn));
 }
-function exportPDFPortrait(){
+function exportPDFPortrait(){return construirPDF('portrait',true);}
+function exportPDFLandscape(){return construirPDF('landscape',true);}
+
+/* Motor único de PDF para ambas orientaciones.
+   - Vertical: 2 columnas; horizontal: 3 columnas.
+   - Cada columna lleva su propio cursor (página + altura). Cuando el contenido
+     no cabe, la columna continúa en la página siguiente: nada queda fuera de la hoja.
+   - Pie con "Página X de N" y encabezado de continuación en cada página. */
+function construirPDF(orient,descargar){
   const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210,H=297,M=8;            /* márgenes reducidos para aprovechar la hoja */
+  const L=orient==='landscape';
+  const doc=new jsPDF({orientation:L?'landscape':'portrait',unit:'mm',format:'a4'});
+  const W=L?297:210, H=L?210:297, M=8;
   const teal=[29,158,117],tealD=[15,110,86],grayT=[110,116,112],ink=[26,36,32],soft=[240,244,242],zebra=[248,250,249];
-  const colGap=6;
-  const colW=(W-2*M-colGap)/2;      /* dos columnas */
-  const Lx=M, Rx=M+colW+colGap;
-  let yL=0,yR=0;                     /* cursores independientes por columna */
-  const top=26, bottom=H-9;
+  const gap=6, ncol=L?3:2;
+  const colW=(W-2*M-gap*(ncol-1))/ncol;
+  const colX=[];for(let i=0;i<ncol;i++)colX.push(M+i*(colW+gap));
+  const top=L?24:26, topCont=18, bottom=H-(L?8:9);
+  const F=L?{sec:8.5,secH:6.5,secAfter:9.5,lab:7.5,valF:8,kvStep:4.7,kvLine:3.9,kvOff:26,drugF:7.5,drugT:3.9,drugL:3.5,drugAfter:1.8,tbl:6.2,noteF:6.5,noteL:3.1,gapSec:2}
+           :{sec:8,  secH:6,  secAfter:8.5,lab:7,  valF:7.5,kvStep:4.3,kvLine:3.6,kvOff:25,drugF:7,  drugT:3.6,drugL:3.3,drugAfter:1.5,tbl:5.6,noteF:6,  noteL:2.9,gapSec:1.5};
+  const y=[],pg=[];for(let i=0;i<ncol;i++){y.push(top);pg.push(1);}
 
-  /* ---------- ENCABEZADO ---------- */
-  const logoH=10, logoW=logoH*3.046;
-  try{ doc.addImage(LOGO_SOMNUS,'PNG',M,6,logoW,logoH); }
-  catch(e){ doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('SOMNUS',M,14); }
-  doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(12);
-  doc.text('REGISTRO DE ANESTESIA',W-M,11,{align:'right'});
-  doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-  doc.text((val('f_clinica')||'')+(val('f_clinica')?'  ·  ':'')+(val('f_fecha')||new Date().toLocaleDateString('es-CL')),W-M,16,{align:'right'});
-  doc.setDrawColor(...teal);doc.setLineWidth(0.7);doc.line(M,20,W-M,20);
-  yL=top;yR=top;
-
-  /* helpers de columna */
-  function cur(col){return col==='L'?yL:yR;}
-  function setCur(col,v){if(col==='L')yL=v;else yR=v;}
-  function x0(col){return col==='L'?Lx:Rx;}
-
-  function section(col,title){
-    let y=cur(col),x=x0(col);
-    doc.setFillColor(...soft);doc.roundedRect(x,y,colW,6,1,1,'F');
-    doc.setFillColor(...teal);doc.rect(x,y,1.4,6,'F');
-    doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(8);
-    doc.text(title.toUpperCase(),x+3.5,y+4.1);
-    setCur(col,y+8.5);
-  }
-  function kv(col,l,v){
-    let y=cur(col),x=x0(col);
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...grayT);
-    doc.text(l,x,y);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(7.5);
-    const lines=doc.splitTextToSize(v||'—',colW-26);
-    doc.text(lines,x+25,y);
-    setCur(col,y+Math.max(4.3,lines.length*3.6));
-  }
-  function kvPair(col,l1,v1,l2,v2){
-    let y=cur(col),x=x0(col);const half=colW/2;
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...grayT);
-    doc.text(l1,x,y);const o1=Math.max(13,doc.getTextWidth(l1)+2.5);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(7.5);doc.text(clip(v1||'—',half-o1),x+o1,y);
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...grayT);
-    doc.text(l2,x+half,y);const o2=Math.max(13,doc.getTextWidth(l2)+2.5);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(7.5);doc.text(clip(v2||'—',half-o2),x+half+o2,y);
-    setCur(col,y+4.3);
-  }
-  function drugs(col,title,arr){
-    if(!arr.length)return;
-    let y=cur(col),x=x0(col);
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...tealD);
-    doc.text(title,x,y);y+=3.6;
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(50,55,52);
-    arr.forEach(line=>{const ls=doc.splitTextToSize('• '+line,colW-2);doc.text(ls,x+1,y);y+=ls.length*3.3;});
-    setCur(col,y+1.5);
+  function usar(c){doc.setPage(pg[c]);}
+  /* Asegura h mm libres en la columna c; si no caben, pasa a la página siguiente */
+  function asegurar(c,h){
+    if(y[c]+h>bottom-2){
+      pg[c]++;
+      while(doc.getNumberOfPages()<pg[c]) doc.addPage();
+      y[c]=topCont+4;
+    }
+    usar(c);
   }
   function clip(s,w){s=String(s);const max=Math.floor(w/1.5);return s.length>max?s.substring(0,max-1)+'…':s;}
-
-  /* ================= COLUMNA IZQUIERDA ================= */
-  section('L','Identificación');
-  kvPair('L','Paciente',val('f_paciente'),'Propiet.',val('f_propietario'));
-  kvPair('L','Especie',val('f_especie'),'Raza',val('f_raza'));
-  kvPair('L','Sexo',val('f_sexo'),'Edad',val('f_edad'));
-  kvPair('L','Peso',val('f_peso')?val('f_peso')+' kg':'—','Chip',val('f_chip'));
-  kv('L','Proced.',val('f_procedimiento'));
-  kvPair('L','Cirujano',val('f_cirujano'),'Anest.',val('f_anestesista'));
-  yL+=1.5;
-
-  section('L','Preanestésica');
-  kvPair('L','ASA',val('f_asa')?'ASA '+val('f_asa'):'—','Estado',val('f_estado_pre'));
-  kvPair('L','Ayuno',val('f_ayuno'),'Dolor',val('f_dolor_pre')?val('f_dolor_pre')+'/10':'—');
-  kvPair('L','FC',val('f_fc_pre')?val('f_fc_pre')+' lpm':'—','FR',val('f_fr_pre')?val('f_fr_pre')+' rpm':'—');
-  kvPair('L','T°',val('f_temp_pre')?val('f_temp_pre')+'°C':'—','PA',val('f_pa_pre'));
-  kvPair('L','Mucosas',val('f_mucosas'),'TLLC',val('f_tllc'));
-  kvPair('L','Deshidr.',val('f_deshid'),'Gluc.',val('f_glucosa')?val('f_glucosa')+' mg/dL':'—');
-  if(val('f_obs_pre'))kv('L','Obs.',val('f_obs_pre'));
-  yL+=1.5;
-
-  section('L','Técnica');
-  kv('L','Tipo',getToggles('t-tipo')||'—');
-  kv('L','Vía aérea',getToggles('t-via')||'—');
-  kv('L','Ventil.',getToggles('t-vent')||'—');
-  kvPair('L','Sonda',val('f_sonda')||'—','Inhalat.',val('f_inhalatorio')||'—');
-  kvPair('L','Circuito',val('f_circuito')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
-  yL+=1.5;
-
-  section('L','Farmacología');
-  if(val('f_hora_mpa'))kv('L','Hora MPA',val('f_hora_mpa'));
-  drugs('L','Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
-  if(val('f_hora_induccion'))kv('L','Hora Inducción',val('f_hora_induccion'));
-  drugs('L','Inducción',getDrugs('list-ind').map(drugLine));
-  drugs('L','Mantenimiento',getDrugs('list-mant').map(drugLine));
-  /* Ajustes intraoperatorios de mantención */
-  if(ajustesMant && ajustesMant.length){
-    const ajLines=ajustesMant.map(a=>(a.time?a.time+' — ':(a.t!=null?a.t+' min — ':''))+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
-    drugs('L','Ajustes de mantención',ajLines);
-  }
-  drugs('L','Intraquirúrgicas',getDrugs('list-intraq').map(drugLine));
-  drugs('L','Loco-regional',getDrugs('list-loco').map(drugLine));
-  if(!['list-mpa','list-ind','list-mant','list-intraq','list-loco'].some(id=>getDrugs(id).length)){
-    doc.setFont('helvetica','italic');doc.setFontSize(7);doc.setTextColor(...grayT);
-    doc.text('Sin fármacos registrados.',Lx+1,yL);yL+=4;
-  }
-  yL+=1.5;
-
-  section('L','Recuperación');
-  kvPair('L','Extubación',val('f_extub'),'Esternal',val('f_esternal'));
-  kvPair('L','Bipedest.',val('f_bipe'),'Alta',val('f_alta'));
-  kvPair('L','Tipo',clip(val('f_tipo_recup'),18),'Dolor',val('f_dolor_post')?val('f_dolor_post')+'/10':'—');
-  kvPair('L','Fluidos',val('f_vol_total')?val('f_vol_total')+' mL':'—','Destino',getToggles('t-destino')||'—');
-  const sc=[];if(scales.mpa)sc.push('MPA '+scales.mpa);if(scales.ind)sc.push('Ind '+scales.ind);if(scales.intub)sc.push('Intub '+scales.intub);if(scales.recup)sc.push('Recup '+scales.recup);
-  if(sc.length)kv('L','Calidad',sc.join(' · '));
-  drugs('L','Medicación postop.',getDrugs('list-postop').map(drugLine));
-  if(val('f_recom'))kv('L','Recom.',val('f_recom'));
-
-  /* ================= COLUMNA DERECHA ================= */
-  /* Gráfico de tendencias */
-  if(registros.length){
-    section('R','Tendencias');
-    const img=captureChartImage();
-    if(img){
-      const chartCv=document.getElementById('trendChart');
-      const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
-      const imgH=colW*ratio;
-      try{doc.addImage(img,'PNG',Rx,yR,colW,imgH);}catch(e){}
-      yR+=imgH+2.5;
-    }
-  }
-
-  /* Tabla de registro intraoperatorio — parámetros en filas, hora en columnas */
-  if(registros.length){
-    section('R','Registro intraoperatorio');
-    const colors={teal,tealD,grayT,ink,soft,zebra};
-    let y=drawRegistroTranspuesto(doc,Rx,yR,colW,colors,5.6,5.6);
-    yR=y;
-    /* notas: solo registros con nota escrita (evita repetir el plano en cada fila) */
-    const notas=registros.filter(r=>r.nota);
-    if(notas.length){
-      doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(...grayT);
-      doc.text('Notas:',Rx,yR);yR+=3.2;
-      doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(50,55,52);
-      notas.forEach(r=>{
-        const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
-        const ls=doc.splitTextToSize('• '+parts.join(' — '),colW-2);
-        doc.text(ls,Rx+1,yR);yR+=ls.length*2.9;
-      });
-    }
-  } else {
-    section('R','Registro intraoperatorio');
-    doc.setFont('helvetica','italic');doc.setFontSize(7.5);doc.setTextColor(...grayT);
-    doc.text('Sin registros de monitorización.',Rx+1,yR);
-  }
-
-  /* ---------- línea divisoria entre columnas ---------- */
-  doc.setDrawColor(...[230,234,232]);doc.setLineWidth(0.25);
-  doc.line(M+colW+colGap/2,top,M+colW+colGap/2,Math.max(yL,yR));
-
-  /* ---------- PIE ---------- */
-  doc.setDrawColor(220,225,222);doc.setLineWidth(0.3);doc.line(M,bottom,W-M,bottom);
-  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(150,156,152);
-  doc.text('SOMNUS Anestesiología · Documento clínico veterinario',M,bottom+4);
-  doc.text('Generado '+new Date().toLocaleString('es-CL'),W-M,bottom+4,{align:'right'});
-
-  const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+(val('f_fecha')||new Date().toISOString().slice(0,10))+'.pdf';
-  /* iOS Safari: doc.save() no descarga, abre tab. Usamos datauri con <a> */
-  try{
-    const ua=navigator.userAgent||'';
-    const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
-    if(isIOS || isSafari){
-      const dataUri=doc.output('datauristring');
-      const a=document.createElement('a');
-      a.href=dataUri;
-      a.download=fn;
-      a.target='_blank';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>document.body.removeChild(a),200);
-    } else {
-      doc.save(fn);
-    }
-  } catch(e){ doc.save(fn); }
-  toast('📄 PDF generado — revisa Descargas o la pestaña abierta');
-  /* Retornar blob y filename para compartir */
-  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn };
-}
-
-function exportPDFLandscape(){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const W=297,H=210,M=8;
-  const teal=[29,158,117],tealD=[15,110,86],grayT=[110,116,112],ink=[26,36,32],soft=[240,244,242],zebra=[248,250,249];
-  const gap=6;
-  const colW=(W-2*M-2*gap)/3;          /* tres columnas */
-  const colX=[M, M+colW+gap, M+2*(colW+gap)];
-  const yc=[0,0,0];
-  const top=24, bottom=H-8;
-
-  /* ---------- ENCABEZADO ---------- */
-  const logoH=10, logoW=logoH*3.046;
-  try{ doc.addImage(LOGO_SOMNUS,'PNG',M,5,logoW,logoH); }
-  catch(e){ doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('SOMNUS',M,13); }
-  doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(13);
-  doc.text('REGISTRO DE ANESTESIA',W-M,10,{align:'right'});
-  doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(8);
-  doc.text((val('f_clinica')||'')+(val('f_clinica')?'  ·  ':'')+(val('f_fecha')||new Date().toLocaleDateString('es-CL')),W-M,15,{align:'right'});
-  doc.setDrawColor(...teal);doc.setLineWidth(0.7);doc.line(M,18.5,W-M,18.5);
-  yc[0]=yc[1]=yc[2]=top;
-
-  const cw=colW;
   function section(c,title){
-    let y=yc[c],x=colX[c];
-    doc.setFillColor(...soft);doc.roundedRect(x,y,cw,6.5,1,1,'F');
-    doc.setFillColor(...teal);doc.rect(x,y,1.5,6.5,'F');
-    doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
-    doc.text(title.toUpperCase(),x+3.5,y+4.4);
-    yc[c]=y+9.5;
+    asegurar(c,F.secH+F.kvStep+3);
+    const x=colX[c],yy=y[c];
+    doc.setFillColor(...soft);doc.roundedRect(x,yy,colW,F.secH,1,1,'F');
+    doc.setFillColor(...teal);doc.rect(x,yy,1.4,F.secH,'F');
+    doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(F.sec);
+    doc.text(pdfTxt(title).toUpperCase(),x+3.5,yy+F.secH*0.68);
+    y[c]=yy+F.secAfter;
   }
   function kv(c,l,v){
-    let y=yc[c],x=colX[c];
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...grayT);
-    doc.text(l,x,y);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(8);
-    const lines=doc.splitTextToSize(v||'—',cw-27);
-    doc.text(lines,x+26,y);
-    yc[c]=y+Math.max(4.7,lines.length*3.9);
+    doc.setFont('helvetica','normal');doc.setFontSize(F.valF);
+    const lines=doc.splitTextToSize(pdfTxt(v||'—'),colW-F.kvOff-1);
+    asegurar(c,F.kvStep);
+    const x=colX[c];
+    doc.setFont('helvetica','bold');doc.setFontSize(F.lab);doc.setTextColor(...grayT);
+    doc.text(pdfTxt(l),x,y[c]);
+    doc.setFont('helvetica','normal');doc.setFontSize(F.valF);doc.setTextColor(...ink);
+    lines.forEach((ln,i)=>{
+      if(i>0){y[c]+=F.kvLine;asegurar(c,F.kvLine);}
+      doc.text(ln,x+F.kvOff,y[c]);
+    });
+    y[c]+=lines.length>1?F.kvLine+0.7:F.kvStep;
   }
   function kvPair(c,l1,v1,l2,v2){
-    let y=yc[c],x=colX[c];const half=cw/2;
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...grayT);
-    doc.text(l1,x,y);const o1=Math.max(13,doc.getTextWidth(l1)+2.5);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(8);doc.text(clip(v1||'—',half-o1),x+o1,y);
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...grayT);
-    doc.text(l2,x+half,y);const o2=Math.max(13,doc.getTextWidth(l2)+2.5);
-    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(8);doc.text(clip(v2||'—',half-o2),x+half+o2,y);
-    yc[c]=y+4.7;
+    asegurar(c,F.kvStep);
+    const x=colX[c],yy=y[c],half=colW/2;
+    doc.setFont('helvetica','bold');doc.setFontSize(F.lab);doc.setTextColor(...grayT);
+    doc.text(pdfTxt(l1),x,yy);const o1=Math.max(13,doc.getTextWidth(pdfTxt(l1))+2.5);
+    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(F.valF);doc.text(clip(pdfTxt(v1||'—'),half-o1),x+o1,yy);
+    doc.setFont('helvetica','bold');doc.setFontSize(F.lab);doc.setTextColor(...grayT);
+    doc.text(pdfTxt(l2),x+half,yy);const o2=Math.max(13,doc.getTextWidth(pdfTxt(l2))+2.5);
+    doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(F.valF);doc.text(clip(pdfTxt(v2||'—'),half-o2),x+half+o2,yy);
+    y[c]=yy+F.kvStep;
   }
-  function drugs(c,title,arr){
+  function lista(c,title,arr,fs,lh,color){
     if(!arr.length)return;
-    let y=yc[c],x=colX[c];
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...tealD);
-    doc.text(title,x,y);y+=3.9;
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(50,55,52);
-    arr.forEach(line=>{const ls=doc.splitTextToSize('• '+line,cw-2);doc.text(ls,x+1,y);y+=ls.length*3.5;});
-    yc[c]=y+1.8;
-  }
-  function clip(s,w){s=String(s);const max=Math.floor(w/1.5);return s.length>max?s.substring(0,max-1)+'…':s;}
-
-  /* ============ COLUMNA 0: Identificación + Preanestésica + Técnica ============ */
-  section(0,'Identificación');
-  kvPair(0,'Paciente',val('f_paciente'),'Propiet.',val('f_propietario'));
-  kvPair(0,'Especie',val('f_especie'),'Raza',val('f_raza'));
-  kvPair(0,'Sexo',val('f_sexo'),'Edad',val('f_edad'));
-  kvPair(0,'Peso',val('f_peso')?val('f_peso')+' kg':'—','Chip',val('f_chip'));
-  kv(0,'Proced.',val('f_procedimiento'));
-  kvPair(0,'Cirujano',val('f_cirujano'),'Anest.',val('f_anestesista'));
-  yc[0]+=2;
-
-  section(0,'Preanestésica');
-  kvPair(0,'ASA',val('f_asa')?'ASA '+val('f_asa'):'—','Estado',val('f_estado_pre'));
-  kvPair(0,'Ayuno',val('f_ayuno'),'Dolor',val('f_dolor_pre')?val('f_dolor_pre')+'/10':'—');
-  kvPair(0,'FC',val('f_fc_pre')?val('f_fc_pre')+' lpm':'—','FR',val('f_fr_pre')?val('f_fr_pre')+' rpm':'—');
-  kvPair(0,'T°',val('f_temp_pre')?val('f_temp_pre')+'°C':'—','PA',val('f_pa_pre'));
-  kvPair(0,'Mucosas',val('f_mucosas'),'TLLC',val('f_tllc'));
-  kvPair(0,'Deshidr.',val('f_deshid'),'Gluc.',val('f_glucosa')?val('f_glucosa')+' mg/dL':'—');
-  if(val('f_obs_pre'))kv(0,'Obs.',val('f_obs_pre'));
-  yc[0]+=2;
-
-  section(0,'Técnica');
-  kv(0,'Tipo',getToggles('t-tipo')||'—');
-  kv(0,'Vía aérea',getToggles('t-via')||'—');
-  kv(0,'Ventil.',getToggles('t-vent')||'—');
-  kvPair(0,'Sonda',val('f_sonda')||'—','Inhalat.',val('f_inhalatorio')||'—');
-  kvPair(0,'Circuito',val('f_circuito')||'—','Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
-
-  /* ============ COLUMNA 1: Farmacología + Recuperación ============ */
-  section(1,'Farmacología');
-  if(val('f_hora_mpa'))kv(1,'Hora MPA',val('f_hora_mpa'));
-  drugs(1,'Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
-  if(val('f_hora_induccion'))kv(1,'Hora Inducción',val('f_hora_induccion'));
-  drugs(1,'Inducción',getDrugs('list-ind').map(drugLine));
-  drugs(1,'Mantenimiento',getDrugs('list-mant').map(drugLine));
-  if(ajustesMant && ajustesMant.length){
-    const ajLines=ajustesMant.map(a=>(a.time?a.time+' — ':(a.t!=null?a.t+' min — ':''))+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':''));
-    drugs(1,'Ajustes de mantención',ajLines);
-  }
-  drugs(1,'Intraquirúrgicas',getDrugs('list-intraq').map(drugLine));
-  drugs(1,'Loco-regional',getDrugs('list-loco').map(drugLine));
-  if(!['list-mpa','list-ind','list-mant','list-intraq','list-loco'].some(id=>getDrugs(id).length)){
-    doc.setFont('helvetica','italic');doc.setFontSize(7.5);doc.setTextColor(...grayT);
-    doc.text('Sin fármacos registrados.',colX[1]+1,yc[1]);yc[1]+=4;
-  }
-  yc[1]+=2;
-
-  section(1,'Recuperación');
-  kvPair(1,'Extubación',val('f_extub'),'Esternal',val('f_esternal'));
-  kvPair(1,'Bipedest.',val('f_bipe'),'Alta',val('f_alta'));
-  kvPair(1,'Tipo',clip(val('f_tipo_recup'),16),'Dolor',val('f_dolor_post')?val('f_dolor_post')+'/10':'—');
-  kvPair(1,'Fluidos',val('f_vol_total')?val('f_vol_total')+' mL':'—','Destino',getToggles('t-destino')||'—');
-  const sc=[];if(scales.mpa)sc.push('MPA '+scales.mpa);if(scales.ind)sc.push('Ind '+scales.ind);if(scales.intub)sc.push('Intub '+scales.intub);if(scales.recup)sc.push('Recup '+scales.recup);
-  if(sc.length)kv(1,'Calidad',sc.join(' · '));
-  drugs(1,'Medicación postop.',getDrugs('list-postop').map(drugLine));
-  if(val('f_recom'))kv(1,'Recom.',val('f_recom'));
-
-  /* ============ COLUMNA 2: Gráfico + Tabla ============ */
-  if(registros.length){
-    section(2,'Tendencias');
-    const img=captureChartImage();
-    if(img){
-      const chartCv=document.getElementById('trendChart');
-      const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
-      const imgH=cw*ratio;
-      try{doc.addImage(img,'PNG',colX[2],yc[2],cw,imgH);}catch(e){}
-      yc[2]+=imgH+3;
+    if(title){
+      asegurar(c,F.drugT+lh);
+      doc.setFont('helvetica','bold');doc.setFontSize(fs);doc.setTextColor(...tealD);
+      doc.text(pdfTxt(title),colX[c],y[c]);y[c]+=F.drugT;
     }
-    section(2,'Registro intraoperatorio');
-    const x=colX[2];
-    const colors2={teal,tealD,grayT,ink,soft,zebra};
-    yc[2]=drawRegistroTranspuesto(doc,x,yc[2],cw,colors2,6.2,6.2);
+    doc.setFont('helvetica','normal');doc.setFontSize(fs);doc.setTextColor(...(color||[50,55,52]));
+    arr.forEach(line=>{
+      const ls=doc.splitTextToSize('• '+pdfTxt(line),colW-2);
+      ls.forEach(t=>{asegurar(c,lh);doc.setFont('helvetica','normal');doc.setFontSize(fs);doc.setTextColor(...(color||[50,55,52]));doc.text(t,colX[c]+1,y[c]);y[c]+=lh;});
+    });
+    y[c]+=F.drugAfter;
+  }
+  function drugs(c,title,arr){lista(c,title,arr,F.drugF,F.drugL);}
+  function nota(c,txt){
+    doc.setFont('helvetica','italic');doc.setFontSize(F.noteF);
+    doc.splitTextToSize(pdfTxt(txt),colW-2).forEach(t=>{asegurar(c,F.noteL);doc.setFont('helvetica','italic');doc.setFontSize(F.noteF);doc.setTextColor(...grayT);doc.text(t,colX[c]+1,y[c]);y[c]+=F.noteL;});
+  }
+
+  /* ---------- SECCIONES ---------- */
+  function secIdent(c){
+    section(c,'Identificación');
+    kvPair(c,'Paciente',val('f_paciente'),'Tutor',val('f_propietario'));
+    kvPair(c,'Especie',val('f_especie'),'Raza',val('f_raza'));
+    kvPair(c,'Sexo',val('f_sexo'),'Edad',val('f_edad'));
+    kvPair(c,'Peso',val('f_peso')?val('f_peso')+' kg':'—','Chip',val('f_chip'));
+    kvPair(c,'N° ficha',val('f_ficha'),'Ciudad',val('f_ciudad'));
+    kv(c,'Proced.',val('f_procedimiento'));
+    kvPair(c,'Cirujano',val('f_cirujano'),'Anest.',val('f_anestesista'));
+    y[c]+=F.gapSec;
+  }
+  function secPreop(c){
+    section(c,'Preanestésica');
+    kvPair(c,'ASA',val('f_asa')?'ASA '+val('f_asa'):'—','Estado',val('f_estado_pre'));
+    kvPair(c,'Ayuno',val('f_ayuno'),'Dolor',val('f_dolor_pre')?val('f_dolor_pre')+'/10':'—');
+    kvPair(c,'FC',val('f_fc_pre')?val('f_fc_pre')+' lpm':'—','FR',val('f_fr_pre')?val('f_fr_pre')+' rpm':'—');
+    kvPair(c,'T°',val('f_temp_pre')?val('f_temp_pre')+'°C':'—','PA',val('f_pa_pre'));
+    kvPair(c,'Mucosas',val('f_mucosas'),'TLLC',val('f_tllc'));
+    kvPair(c,'Deshidr.',val('f_deshid'),'Gluc.',val('f_glucosa')?val('f_glucosa')+' mg/dL':'—');
+    if(val('f_obs_pre'))kv(c,'Obs.',val('f_obs_pre'));
+    y[c]+=F.gapSec;
+  }
+  function secTecnica(c){
+    section(c,'Técnica');
+    kv(c,'Tipo',getToggles('t-tipo')||'—');
+    kv(c,'Vía aérea',getToggles('t-via')||'—');
+    kv(c,'Ventil.',getToggles('t-vent')||'—');
+    kvPair(c,'Sonda',val('f_sonda')||'—','Cuff',val('f_cuff')?val('f_cuff')+' cmH2O':'—');
+    kvPair(c,'Inhalat.',val('f_inhalatorio')||'—','Circuito',val('f_circuito')||'—');
+    kv(c,'Fluidos',val('f_fluido')?val('f_fluido')+' mL/kg/h':'—');
+    y[c]+=F.gapSec;
+  }
+  function secTiempos(c){
+    section(c,'Tiempos');
+    kvPair(c,'Inducción',val('f_hora_induccion'),'Inicio cx',val('f_hora_inicio'));
+    kvPair(c,'Fin cx',val('f_hora_fin'),'Extubación',val('f_extub'));
+    y[c]+=F.gapSec;
+  }
+  function secFarm(c){
+    section(c,'Farmacología');
+    if(val('f_hora_mpa'))kv(c,'Hora MPA',val('f_hora_mpa'));
+    drugs(c,'Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
+    drugs(c,'Inducción',getDrugs('list-ind').map(drugLine));
+    drugs(c,'Mantenimiento',getDrugs('list-mant').map(drugLine));
+    if(ajustesMant && ajustesMant.length){
+      drugs(c,'Ajustes de mantención',ajustesMant.map(a=>(a.time?a.time+' — ':(a.t!=null?a.t+' min — ':''))+a.farmaco+': '+a.dosis+(a.unidad?' '+a.unidad:'')+(a.motivo?' ('+a.motivo+')':'')));
+    }
+    drugs(c,'Intraquirúrgicas',getDrugs('list-intraq').map(drugLine));
+    drugs(c,'Loco-regional',getDrugs('list-loco').map(drugLine));
+    if(!['list-mpa','list-ind','list-mant','list-intraq','list-loco'].some(id=>getDrugs(id).length)) nota(c,'Sin fármacos registrados.');
+    y[c]+=F.gapSec;
+  }
+  function secRecup(c){
+    section(c,'Recuperación');
+    kvPair(c,'Esternal',val('f_esternal'),'Bipedest.',val('f_bipe'));
+    kvPair(c,'Alta',val('f_alta'),'Tipo',val('f_tipo_recup'));
+    kvPair(c,'Dolor',val('f_dolor_post')?val('f_dolor_post')+'/10':'—','Fluidos',val('f_vol_total')?val('f_vol_total')+' mL':'—');
+    kv(c,'Destino',getToggles('t-destino')||'—');
+    const sc=[];if(scales.mpa)sc.push('MPA '+scales.mpa);if(scales.ind)sc.push('Ind '+scales.ind);if(scales.intub)sc.push('Intub '+scales.intub);if(scales.recup)sc.push('Recup '+scales.recup);
+    if(sc.length)kv(c,'Calidad',sc.join(' · ')+' (1 excelente – 4 deficiente)');
+    drugs(c,'Medicación postop.',getDrugs('list-postop').map(drugLine));
+    if(val('f_recom'))kv(c,'Recom.',val('f_recom'));
+  }
+  function secTendencias(c){
+    const img=captureChartImage();
+    if(!img)return;
+    section(c,'Tendencias');
+    const chartCv=document.getElementById('trendChart');
+    const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
+    const imgH=colW*ratio;
+    asegurar(c,imgH+1);
+    try{doc.addImage(img,'PNG',colX[c],y[c],colW,imgH);}catch(e){}
+    y[c]+=imgH+2.5;
+  }
+  function tablaRegistro(c){
+    const x=colX[c],width=colW;
+    const labelW=Math.max(9,width*0.11), availW=width-labelW, minColW=8.5;
+    const perBlock=Math.max(3,Math.floor(availW/minColW));
+    const filas=[
+      {label:'Min',get:r=>String(r.min)},
+      ...params.map(p=>({label:pdfTxt(p.label).slice(0,6),get:r=>{
+        const v=r.vals&&r.vals[p.key];
+        if(v==null||v==='')return '—';
+        return pdfTxt(v)+(p.key==='pam'&&r.pamEst?'*':'');
+      }})),
+      {label:'Plano',get:r=>r.plano?(PLANO_ABREV[r.plano]||pdfTxt(r.plano).slice(0,6)):'—'},
+    ];
+    const rowH=registros.length>24?3.0:(registros.length>14?3.6:4.1);
+    for(let start=0;start<registros.length;start+=perBlock){
+      const block=registros.slice(start,start+perBlock);
+      const colW2=availW/block.length;
+      asegurar(c,5+filas.length*rowH+2);
+      let yy=y[c]+3.2;
+      doc.setFillColor(...soft);doc.rect(x,yy-3.2,width,5,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(F.tbl);doc.setTextColor(...tealD);
+      doc.text('Hora',x+labelW/2,yy,{align:'center'});
+      block.forEach((r,i)=>{doc.text(pdfTxt(r.time||String(r.min)),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
+      yy+=3;
+      doc.setDrawColor(...teal);doc.setLineWidth(0.3);doc.line(x,yy-1.5,x+width,yy-1.5);
+      filas.forEach((rd,ri)=>{
+        if(ri%2===1){doc.setFillColor(...zebra);doc.rect(x,yy-2.4,width,rowH,'F');}
+        doc.setFont('helvetica','bold');doc.setFontSize(F.tbl);doc.setTextColor(...grayT);
+        doc.text(rd.label,x+1.5,yy);
+        doc.setFont('helvetica','normal');doc.setTextColor(...ink);
+        block.forEach((r,i)=>{doc.text(rd.get(r),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
+        yy+=rowH;
+      });
+      y[c]=yy+2;
+    }
+    if(registros.some(r=>r.plano)) nota(c,'Plano: Sup = superficial; Q-lig / Q-med / Q-prof = quirúrgico ligero / medio / profundo.');
+    if(registros.some(r=>r.pamEst)) nota(c,'* PAM estimada = PAD + (PAS - PAD)/3; no medida.');
+    y[c]+=1;
+  }
+  function secRegistro(c){
+    section(c,'Registro intraoperatorio');
+    if(!registros.length){nota(c,'Sin registros de monitorización.');y[c]+=F.gapSec;return;}
+    tablaRegistro(c);
     const notas=registros.filter(r=>r.nota);
     if(notas.length){
-      doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...grayT);
-      doc.text('Notas:',x,yc[2]);yc[2]+=3.4;
-      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(50,55,52);
-      notas.forEach(r=>{
-        const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);
-        const ls=doc.splitTextToSize('• '+parts.join(' — '),cw-2);
-        doc.text(ls,x+1,yc[2]);yc[2]+=ls.length*3.1;
-      });
+      lista(c,'Notas del registro',notas.map(r=>{const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);return parts.join(' — ');}),F.noteF+0.5,F.noteL);
     }
-  } else {
-    section(2,'Registro intraoperatorio');
-    doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(...grayT);
-    doc.text('Sin registros de monitorización.',colX[2]+1,yc[2]);
+    y[c]+=F.gapSec;
+  }
+  function secNotas(c){
+    if(!chartNotes.length)return;
+    section(c,'Notas intraquirúrgicas y eventos');
+    lista(c,'',notasOrdenadas().map(n=>n.time+' — '+n.notes.join(' / ')),F.noteF+0.5,F.noteL);
   }
 
-  /* divisores entre columnas */
-  doc.setDrawColor(...[230,234,232]);doc.setLineWidth(0.25);
-  const maxY=Math.max(...yc);
-  doc.line(colX[1]-gap/2,top,colX[1]-gap/2,maxY);
-  doc.line(colX[2]-gap/2,top,colX[2]-gap/2,maxY);
+  /* ---------- ENCABEZADO PÁGINA 1 ---------- */
+  const fechaTxt=val('f_fecha')||fechaLocalISO();
+  const logoH=10, logoW=logoH*3.046;
+  try{ doc.addImage(LOGO_SOMNUS,'PNG',M,L?5:6,logoW,logoH); }
+  catch(e){ doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('SOMNUS',M,L?13:14); }
+  doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(L?13:12);
+  doc.text('REGISTRO DE ANESTESIA',W-M,L?10:11,{align:'right'});
+  doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(L?8:7.5);
+  doc.text(pdfTxt((val('f_clinica')||'')+(val('f_clinica')?'  ·  ':'')+fechaTxt),W-M,L?15:16,{align:'right'});
+  doc.setDrawColor(...teal);doc.setLineWidth(0.7);doc.line(M,L?18.5:20,W-M,L?18.5:20);
 
-  /* pie */
-  doc.setDrawColor(220,225,222);doc.setLineWidth(0.3);doc.line(M,bottom,W-M,bottom);
-  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(150,156,152);
-  doc.text('SOMNUS Anestesiología · Documento clínico veterinario',M,bottom+4);
-  doc.text('Generado '+new Date().toLocaleString('es-CL'),W-M,bottom+4,{align:'right'});
+  /* ---------- CONTENIDO ---------- */
+  if(L){
+    secIdent(0);secPreop(0);secTecnica(0);
+    secTiempos(1);secFarm(1);secRecup(1);
+    secTendencias(2);secRegistro(2);secNotas(2);
+  }else{
+    secIdent(0);secPreop(0);secTecnica(0);secTiempos(0);secFarm(0);secRecup(0);
+    secTendencias(1);secRegistro(1);secNotas(1);
+  }
 
-  const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+(val('f_fecha')||new Date().toISOString().slice(0,10))+'.pdf';
-  try{
-    const ua=navigator.userAgent||'';
-    const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
-    if(isIOS || isSafari){
-      const dataUri=doc.output('datauristring');
-      const a=document.createElement('a');
-      a.href=dataUri; a.download=fn; a.target='_blank';
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>document.body.removeChild(a),200);
-    } else { doc.save(fn); }
-  } catch(e){ doc.save(fn); }
-  toast('📄 PDF horizontal generado en una página');
-  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn };
+  /* ---------- PIE, CONTINUACIÓN Y DIVISORES EN CADA PÁGINA ---------- */
+  const total=doc.getNumberOfPages();
+  for(let i=1;i<=total;i++){
+    doc.setPage(i);
+    if(i>1){
+      doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(9);
+      doc.text('REGISTRO DE ANESTESIA (continuación)',M,11);
+      doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+      doc.text(pdfTxt((val('f_paciente')||'Paciente')+'  ·  '+fechaTxt),W-M,11,{align:'right'});
+      doc.setDrawColor(...teal);doc.setLineWidth(0.5);doc.line(M,topCont-4,W-M,topCont-4);
+    }
+    doc.setDrawColor(230,234,232);doc.setLineWidth(0.25);
+    for(let c=1;c<ncol;c++) doc.line(colX[c]-gap/2,i===1?top:topCont,colX[c]-gap/2,bottom-3);
+    doc.setDrawColor(220,225,222);doc.setLineWidth(0.3);doc.line(M,bottom,W-M,bottom);
+    doc.setFont('helvetica','normal');doc.setFontSize(L?7:6.5);doc.setTextColor(150,156,152);
+    doc.text('SOMNUS Anestesiología · Documento clínico veterinario',M,bottom+4);
+    doc.text('Generado '+new Date().toLocaleString('es-CL')+'  ·  Página '+i+' de '+total,W-M,bottom+4,{align:'right'});
+  }
+
+  const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+fechaTxt+'.pdf';
+  if(descargar){
+    /* iOS Safari: doc.save() no descarga, abre tab. Usamos datauri con <a> */
+    try{
+      const ua=navigator.userAgent||'';
+      const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
+      if(isIOS || isSafari){
+        const dataUri=doc.output('datauristring');
+        const a=document.createElement('a');
+        a.href=dataUri; a.download=fn; a.target='_blank';
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>document.body.removeChild(a),200);
+      } else { doc.save(fn); }
+    } catch(e){ doc.save(fn); }
+    toast('📄 PDF generado ('+total+' página'+(total>1?'s':'')+') — revisa Descargas o la pestaña abierta');
+  }
+  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn, paginas: total };
 }
 
 
@@ -2982,7 +2981,8 @@ async function generarPDFBlob(){
   const orient = document.getElementById('f_orient') ? document.getElementById('f_orient').value : 'portrait';
   let resultado;
   try {
-    resultado = orient === 'landscape' ? exportPDFLandscape() : exportPDFPortrait();
+    /* Solo genera el archivo para compartirlo; no lo descarga aparte */
+    resultado = construirPDF(orient === 'landscape' ? 'landscape' : 'portrait', false);
   } catch(e) {
     toast('Error al generar el PDF');
     console.error(e);
@@ -3068,7 +3068,7 @@ function cuerpoMail(){
 /* ============ INIT ============ */
 function initDefaults(){
   const f=document.getElementById('f_fecha');
-  if(f && !f.value)f.value=new Date().toISOString().slice(0,10);
+  if(f && !f.value)f.value=fechaLocalISO();
 }
 function precargarFarmacos(){
   /* Pre-agrega una fila vacía con lista desplegable en MPA, Inducción y Mantención
@@ -3166,6 +3166,9 @@ function estadoAJSON(){
     scales:       JSON.parse(JSON.stringify(scales)),
     ajustesMant:  JSON.parse(JSON.stringify(ajustesMant)),
     timerSecs,
+    timerRunning,
+    timerStartMs,
+    sid:          currentSid,
     chartNotes:   JSON.parse(JSON.stringify(chartNotes))
   };
 }
@@ -3191,6 +3194,8 @@ function guardarSesion(inmediato){
 /* ── Restaurar estado desde JSON ──────────────────────────────────── */
 function restaurarSesion(estado){
   if(!estado || estado.ver !== LS_VER) return false;
+  /* Formulario en blanco antes de cargar: evita mezclar con el caso en pantalla */
+  limpiarFormulario();
 
   /* Campos de formulario */
   Object.entries(estado.campos||{}).forEach(([id,val])=>{
@@ -3228,12 +3233,22 @@ function restaurarSesion(estado){
         const key = (el.dataset && el.dataset.f) || el.id;
         if(key && rowData[key] !== undefined) el.value = rowData[key];
       });
+      /* Fármaco "Otro": recrear el campo libre y devolverle el nombre escrito */
+      if(rowData.farmaco === 'Otro'){
+        const fs = lastRow.querySelector('select[data-f="farmaco"]');
+        if(fs){
+          fs.value = 'Otro';
+          onDrugSelectChange(fs, true);
+          const fo = lastRow.querySelector('input[data-f="farmaco_otro"]');
+          if(fo && rowData.farmaco_otro) fo.value = rowData.farmaco_otro;
+        }
+      }
       /* Si el bloqueo guardado era "Otro", disparar el listener para crear el input */
       if(rowData.bloqueo === 'Otro'){
         const blqSel = lastRow.querySelector('select[data-f="bloqueo"]');
         if(blqSel){
           blqSel.value = 'Otro';
-          onBlockSelectChange(blqSel);
+          onBlockSelectChange(blqSel, true);
           const blqOtro = lastRow.querySelector('input[data-f="bloqueo_otro"]');
           if(blqOtro && rowData.bloqueo_otro) blqOtro.value = rowData.bloqueo_otro;
         }
@@ -3247,6 +3262,7 @@ function restaurarSesion(estado){
   scales      = estado.scales      || scales;
   ajustesMant = estado.ajustesMant || [];
   timerSecs   = estado.timerSecs   || 0;
+  currentSid  = estado.sid || nuevoSid();
   chartNotes       = estado.chartNotes       || [];
   /* Compatibilidad: sesiones guardadas cuando inducción/extubación eran marcadores.
      Se vuelca su hora a los campos de "Configuración de registro". */
@@ -3256,13 +3272,26 @@ function restaurarSesion(estado){
   if(estado.extubationMarker && estado.extubationMarker.time){
     const el=document.getElementById('f_extub'); if(el && !el.value) el.value=estado.extubationMarker.time;
   }
-  document.getElementById('timer').textContent = fmt(timerSecs);
+  /* Cronómetro: si estaba corriendo, sigue desde su hora de inicio real */
+  if(estado.timerRunning && estado.timerStartMs){
+    timerRunning=true; timerStartMs=estado.timerStartMs;
+    pintarBotonTimer('run');
+    document.getElementById('timer').classList.add('run');
+    iniciarIntervaloTimer();
+    startCountdown();
+  }else{
+    pintarBotonTimer(timerSecs>0?'pause':'init');
+    tickTimer();
+  }
 
   /* Re-renderizar todo */
   renderRegGrid();  renderRegTable(); renderScales(); renderChart(); renderChartNotes();
   aplicarRangosEspecie();
   renderAjustesTabla();
   refreshMantOptions && refreshMantOptions();
+  updateAsaBadge();
+  refreshVivoHeader();
+  onPesoChange();
   return true;
 }
 
@@ -3276,9 +3305,13 @@ function cargarSesionGuardada(){
     const horas = Math.floor(mins/60), m = mins%60;
     const cuando = horas>0 ? horas+'h '+m+'min atrás' : mins+'min atrás';
     const paciente = (estado.campos && estado.campos.f_paciente) || 'sin nombre';
-    if(confirm('Se encontró una sesión guardada de '+cuando+' (paciente: '+paciente+'). ¿Restaurar?')){
+    if(confirm('Se encontró una sesión guardada de '+cuando+' (paciente: '+paciente+'). ¿Restaurar?\n\nSi eliges Cancelar, el caso se guarda en el Historial y no se pierde.')){
       const ok = restaurarSesion(estado);
       if(ok){ toast('✓ Sesión restaurada ('+cuando+')'); return true; }
+    } else {
+      archivarEstado(estado);
+      try{ STORAGE.removeItem(LS_KEY); }catch(e){}
+      toast('El caso anterior quedó guardado en el Historial');
     }
   } catch(e) { console.warn('Error cargando sesión:', e); }
   return false;
@@ -3291,11 +3324,11 @@ function borrarSesionGuardada(){
 }
 
 /* ── Exportar borrador JSON ────────────────────────────────────────── */
-function exportarBorradorJSON(){
+function exportarBorradorJSON(estado){
   try {
-    const datos = estadoAJSON();
-    const paciente = (datos.campos.f_paciente||'paciente').replace(/[^\wáéíóúñ]/gi,'-');
-    const fecha = datos.campos.f_fecha || new Date().toISOString().slice(0,10);
+    const datos = estado || estadoAJSON();
+    const paciente = ((datos.campos&&datos.campos.f_paciente)||'paciente').replace(/[^\wáéíóúñ]/gi,'-');
+    const fecha = (datos.campos&&datos.campos.f_fecha) || fechaLocalISO();
     const fn = 'SOMNUS_borrador_'+paciente+'_'+fecha+'.json';
     const blob = new Blob([JSON.stringify(datos,null,2)], {type:'application/json'});
     const url  = URL.createObjectURL(blob);
@@ -3318,6 +3351,8 @@ function importarBorradorJSON(){
     reader.onload = ev=>{
       try {
         const estado = JSON.parse(ev.target.result);
+        if(!estado || estado.ver !== LS_VER){ toast('Error: archivo incompatible'); return; }
+        archivarActual();
         if(restaurarSesion(estado)){
           guardarSesion(true);
           toast('✓ Borrador importado correctamente');
@@ -3373,6 +3408,75 @@ function activarAutoGuardado(){
 
 
 /* ════════════════════════════════════════════════════════════════════
+   HISTORIAL DE CASOS — los últimos 30 casos quedan en el dispositivo.
+   Se archiva un caso al pulsar "Nuevo", al importar, al abrir otro caso
+   o al cancelar la restauración de una sesión.
+   ════════════════════════════════════════════════════════════════════ */
+const HIST_KEY='somnus_historial', HIST_MAX=30;
+function nuevoSid(){return 's'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+let currentSid=nuevoSid();
+function leerHistorial(){
+  try{const h=JSON.parse(STORAGE.getItem(HIST_KEY)||'[]');return Array.isArray(h)?h:[];}catch(e){return [];}
+}
+function escribirHistorial(h){
+  for(;;){
+    try{STORAGE.setItem(HIST_KEY,JSON.stringify(h));return true;}
+    catch(e){ if(!h.length) return false; h.pop(); }   /* sin espacio: descarta el más antiguo */
+  }
+}
+function estadoTieneDatos(e){
+  if(!e)return false;
+  const c=e.campos||{};
+  return !!((e.registros&&e.registros.length)||(e.chartNotes&&e.chartNotes.length)||c.f_paciente||c.f_procedimiento||
+    Object.values(e.farmacos||{}).some(rows=>(rows||[]).some(r=>r&&r.farmaco)));
+}
+function archivarEstado(e){
+  if(!estadoTieneDatos(e))return;
+  if(!e.sid) e.sid=nuevoSid();
+  const h=leerHistorial().filter(x=>x.sid!==e.sid);
+  h.unshift({sid:e.sid, ts:e.ts||Date.now(), paciente:(e.campos&&e.campos.f_paciente)||'',
+             fecha:(e.campos&&e.campos.f_fecha)||'', nreg:(e.registros||[]).length, estado:e});
+  if(h.length>HIST_MAX) h.length=HIST_MAX;
+  if(!escribirHistorial(h)) toast('⚠ Sin espacio para archivar el caso: exporta el borrador JSON');
+}
+function archivarActual(){ try{ archivarEstado(estadoAJSON()); }catch(e){ console.warn('Archivar:',e); } }
+function renderHistorialLista(){
+  const h=leerHistorial();
+  if(!h.length) return '<p class="hint">Aún no hay casos archivados. Un caso se archiva al pulsar "Nuevo", al importar un borrador o al abrir otro caso.</p>';
+  return h.map((x,i)=>'<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line-soft)">'+
+    '<div style="flex:1;min-width:0"><div style="font-weight:600">'+esc(x.paciente||'Sin nombre')+'</div>'+
+    '<div style="font-size:12px;color:var(--muted)">'+esc(x.fecha||'sin fecha')+' · '+(x.nreg||0)+' registro(s) · guardado '+esc(new Date(x.ts).toLocaleString('es-CL'))+'</div></div>'+
+    '<button class="btn btn-sm" data-action="abrirHistorial" data-idx="'+i+'">Abrir</button>'+
+    '<button class="btn btn-sm" data-action="jsonHistorial" data-idx="'+i+'" title="Descargar borrador JSON">JSON</button>'+
+    '<button class="btn btn-sm" data-action="borrarHistorial" data-idx="'+i+'" title="Eliminar del historial">✕</button>'+
+    '</div>').join('');
+}
+function openHistorial(){
+  document.getElementById('modalBg').innerHTML=
+    '<div class="modal" style="max-width:600px">'+
+    '<h3>Historial de casos</h3>'+
+    '<p>Últimos '+HIST_MAX+' casos guardados en este dispositivo. Al abrir uno, el caso en pantalla se archiva primero.</p>'+
+    '<div id="hist-lista" style="max-height:55vh;overflow-y:auto">'+renderHistorialLista()+'</div>'+
+    '<div class="modal-actions"><button class="btn" data-action="closeModal">Cerrar</button></div></div>';
+  document.getElementById('modalBg').classList.add('show');
+}
+function abrirHistorial(i){
+  const x=leerHistorial()[i]; if(!x)return;
+  if(!confirm('¿Abrir el caso de '+(x.paciente||'sin nombre')+'? El caso en pantalla se guardará en el Historial.'))return;
+  archivarActual();
+  if(restaurarSesion(x.estado)){ guardarSesion(true); closeModal(); toast('✓ Caso abierto: '+(x.paciente||'sin nombre')); }
+  else toast('No se pudo abrir el caso');
+}
+function jsonHistorial(i){ const x=leerHistorial()[i]; if(x) exportarBorradorJSON(x.estado); }
+function borrarHistorial(i){
+  const h=leerHistorial(); const x=h[i]; if(!x)return;
+  if(!confirm('¿Eliminar del historial el caso de '+(x.paciente||'sin nombre')+'? Esta acción no se puede deshacer.'))return;
+  h.splice(i,1); escribirHistorial(h);
+  const l=document.getElementById('hist-lista'); if(l) l.innerHTML=renderHistorialLista();
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
    AJUSTES DE MANTENCIÓN INTRAOPERATORIA
    ════════════════════════════════════════════════════════════════════ */
 let ajustesMant = [];   // [{t, farmaco, dosis, unidad, motivo}]
@@ -3415,6 +3519,7 @@ function refreshAjusteSelects(){
 function tiempoActualMin(){
   const manual = document.getElementById('aj_tiempo');
   if(manual && manual.value !== '') return parseInt(manual.value);
+  tickTimer();
   return Math.round(timerSecs / 60);
 }
 
@@ -3486,13 +3591,13 @@ function renderAjustesTabla(){
     const trBg  = i%2===0 ? '' : 'background:var(--surf)';
     return '<tr style="'+trBg+'">' +
       '<td style="padding:6px 8px;white-space:nowrap">' +
-        '<input type="time" value="'+(a.time||'')+'" data-action="editAjusteTime" data-idx="'+i+'" '+
+        '<input type="time" value="'+esc(a.time||'')+'" data-action="editAjusteTime" data-idx="'+i+'" '+
         'style="border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:12px;color:var(--teal-d);font-weight:600;font-family:inherit;width:96px">' +
       '</td>' +
-      '<td style="padding:6px 8px;font-weight:500">'+a.farmaco+'</td>' +
-      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+a.dosis+'</td>' +
-      '<td style="padding:6px 8px;color:var(--muted)">'+a.unidad+'</td>' +
-      '<td style="padding:6px 8px;color:var(--muted);font-style:italic">'+a.motivo+'</td>' +
+      '<td style="padding:6px 8px;font-weight:500">'+esc(a.farmaco)+'</td>' +
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+esc(a.dosis)+'</td>' +
+      '<td style="padding:6px 8px;color:var(--muted)">'+esc(a.unidad)+'</td>' +
+      '<td style="padding:6px 8px;color:var(--muted);font-style:italic">'+esc(a.motivo)+'</td>' +
       '<td style="padding:6px 8px;text-align:right">' +
         '<button data-action="eliminarAjuste" data-idx="'+i+'" title="Eliminar" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;line-height:1;padding:2px 4px">×</button>' +
       '</td></tr>';
@@ -3625,6 +3730,10 @@ function init(){
       case 'importarBorrador': importarBorradorJSON(); break;
       case 'cerrarBanner':     var b=document.getElementById('file-banner'); if(b)b.style.display='none'; break;
       case 'compartirPDF':    compartirPDF(); break;
+      case 'openHistorial':   openHistorial(); break;
+      case 'abrirHistorial':  abrirHistorial(parseInt(el.dataset.idx)); break;
+      case 'jsonHistorial':   jsonHistorial(parseInt(el.dataset.idx)); break;
+      case 'borrarHistorial': borrarHistorial(parseInt(el.dataset.idx)); break;
       case 'openChartNote':   openChartNote(); break;
       case 'quickHoraEvento': quickHoraEvento(el.dataset.field); break;
       case 'confirmChartNote': confirmChartNote(el); break;
