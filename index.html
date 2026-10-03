@@ -625,78 +625,12 @@ input[type=date],select,textarea{
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--teal);flex-shrink:0"><path d="M3 12h4l2 6 4-14 2 8h6"/><circle cx="19" cy="6" r="2.5"/></svg>
     <div style="flex:1;min-width:180px">
       <div style="font-weight:600;color:var(--ink)">El registro de constantes se mudó a "Vista en vivo"</div>
-      <p class="hint" style="margin-top:2px">Ahí encontrás la grilla de parámetros con alerta de color, la tabla de dosis de emergencia y los accesos rápidos de inducción/extubación.</p>
+      <p class="hint" style="margin-top:2px">Ahí encontrás la grilla de parámetros con alerta de color, los ajustes de mantención, la tabla de dosis de emergencia y los accesos rápidos de inducción/extubación.</p>
     </div>
     <label for="tab-vivo" class="btn btn-primary" style="cursor:pointer">Ir a Vista en vivo</label>
   </div>
 
 
-  <!-- ══ AJUSTES DE MANTENCIÓN DURANTE ANESTESIA ══ -->
-  <div class="card" id="card-ajustes-mant">
-    <div class="card-head">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-      </svg>
-      <span class="card-title">Ajustes de mantención intraoperatoria</span>
-    </div>
-    <p class="hint" style="margin-bottom:10px">
-      Registra cada modificación de dosis o CRI durante la anestesia. El tiempo se toma automáticamente del cronómetro.
-    </p>
-
-    <!-- Fila de ingreso de ajuste -->
-    <div class="grid g4" id="ajuste-form" style="align-items:flex-end;margin-bottom:10px">
-      <div class="field">
-        <label>Fármaco</label>
-        <select id="aj_farmaco" style="font-size:15px">
-          <option value="">Seleccionar…</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Dosis nueva</label>
-        <input type="number" step="any" id="aj_dosis" placeholder="0.0" style="font-size:15px">
-      </div>
-      <div class="field">
-        <label>Unidad</label>
-        <select id="aj_unidad" style="font-size:15px">
-          <option value="">—</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Tiempo (min)</label>
-        <input type="number" step="1" id="aj_tiempo" placeholder="auto" style="font-size:15px;background:var(--teal-l)">
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-      <div class="field" style="flex:1;min-width:160px">
-        <label>Motivo / nota (opcional)</label>
-        <input id="aj_motivo" placeholder="Ej: rescate hipotensión, ajuste plano…" style="font-size:15px">
-      </div>
-      <button class="btn btn-primary" data-action="registrarAjuste" style="align-self:flex-end">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
-        Agregar ajuste
-      </button>
-    </div>
-
-    <!-- Tabla de ajustes registrados -->
-    <div id="ajuste-tabla-wrap" style="display:none">
-      <table style="width:100%;border-collapse:collapse;font-size:13px" id="ajuste-tabla">
-        <thead>
-          <tr style="background:var(--surf);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em">
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Tiempo</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Fármaco</th>
-            <th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--line)">Dosis nueva</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Unidad</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Motivo</th>
-            <th style="padding:6px 8px;border-bottom:1px solid var(--line)"></th>
-          </tr>
-        </thead>
-        <tbody id="ajuste-tbody"></tbody>
-      </table>
-    </div>
-    <p id="ajuste-empty" style="color:var(--muted);font-size:13px;text-align:center;padding:10px 0">
-      Sin ajustes registrados
-    </p>
-  </div>
 
   <div class="card">
     <div class="card-head">
@@ -846,6 +780,73 @@ input[type=date],select,textarea{
     <p class="hint" style="margin-top:8px">Los valores atenuados vienen del registro anterior. Tócalos para confirmarlos; si no los confirmas, no se guardan en este registro.</p>
   </div>
 
+  <!-- ══ AJUSTES DE MANTENCIÓN DURANTE ANESTESIA ══ -->
+  <div class="card" id="card-ajustes-mant">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+      <span class="card-title">Ajustes de mantención intraoperatoria</span>
+    </div>
+    <p class="hint" style="margin-bottom:10px">
+      Registra cada modificación de dosis o CRI durante la anestesia. El tiempo se toma automáticamente del cronómetro.
+    </p>
+
+    <!-- Fila de ingreso de ajuste -->
+    <div class="grid g4" id="ajuste-form" style="align-items:flex-end;margin-bottom:10px">
+      <div class="field">
+        <label>Fármaco</label>
+        <select id="aj_farmaco" style="font-size:15px">
+          <option value="">Seleccionar…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Dosis nueva</label>
+        <input type="number" step="any" id="aj_dosis" placeholder="0.0" style="font-size:15px">
+      </div>
+      <div class="field">
+        <label>Unidad</label>
+        <select id="aj_unidad" style="font-size:15px">
+          <option value="">—</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tiempo (min)</label>
+        <input type="number" step="1" id="aj_tiempo" placeholder="auto" style="font-size:15px;background:var(--teal-l)">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="field" style="flex:1;min-width:160px">
+        <label>Motivo / nota (opcional)</label>
+        <input id="aj_motivo" placeholder="Ej: rescate hipotensión, ajuste plano…" style="font-size:15px">
+      </div>
+      <button class="btn btn-primary" data-action="registrarAjuste" style="align-self:flex-end">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar ajuste
+      </button>
+    </div>
+
+    <!-- Tabla de ajustes registrados -->
+    <div id="ajuste-tabla-wrap" style="display:none">
+      <table style="width:100%;border-collapse:collapse;font-size:13px" id="ajuste-tabla">
+        <thead>
+          <tr style="background:var(--surf);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Tiempo</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Fármaco</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--line)">Dosis nueva</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Unidad</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)">Motivo</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--line)"></th>
+          </tr>
+        </thead>
+        <tbody id="ajuste-tbody"></tbody>
+      </table>
+    </div>
+    <p id="ajuste-empty" style="color:var(--muted);font-size:13px;text-align:center;padding:10px 0">
+      Sin ajustes registrados
+    </p>
+  </div>
+
   <div class="card">
     <div class="card-head">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></svg>
@@ -864,7 +865,7 @@ input[type=date],select,textarea{
 
 <!-- FAB (dentro del .app para el layout flex) -->
 <div class="fab">
-  <div class="orient-seg" id="orientSeg" title="Orientación del PDF">
+  <div class="orient-seg" id="orientSeg" title="Orientación del PDF" style="display:none">
     <button class="orient-opt active" data-orient="portrait" data-action="setOrient">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="1.5"/></svg>
       Vertical
@@ -2168,18 +2169,18 @@ function minAbs(s,ancla){
   const d=m-ancla;
   return d<-720?m+1440:(d>720?m-1440:m);
 }
-function renderChart(){
-  const cv=document.getElementById('trendChart');
-  const empty=document.getElementById('chartEmpty');
-  if(!cv)return;
+function renderChart(dest){
+  const cv=dest?dest.canvas:document.getElementById('trendChart');
+  const empty=dest?null:document.getElementById('chartEmpty');
+  if(!cv)return false;
   const pts=registros.filter(r=>r.vals);
   const hasData=pts.length>0;
   const hasMarkers=chartNotes.length>0||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin');
-  if(!hasData&&!hasMarkers){if(empty)empty.style.display='block';cv.style.display='none';return;}
-  if(empty)empty.style.display='none';cv.style.display='block';
+  if(!hasData&&!hasMarkers){if(!dest){if(empty)empty.style.display='block';cv.style.display='none';}return false;}
+  if(!dest){if(empty)empty.style.display='none';cv.style.display='block';}
 
-  const dpr=window.devicePixelRatio||1;
-  const cssW=cv.clientWidth||680, cssH=340;
+  const dpr=dest?dest.dpr:(window.devicePixelRatio||1);
+  const cssW=dest?dest.cssW:(cv.clientWidth||680), cssH=dest?dest.cssH:340;
   cv.width=cssW*dpr; cv.height=cssH*dpr;
   const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
   ctx.clearRect(0,0,cssW,cssH);
@@ -2227,7 +2228,10 @@ function renderChart(){
   ctx.fillStyle='#fafbfa'; ctx.fillRect(padL,padT,plotW,plotH);
 
   /* Grilla horizontal */
-  const ySteps=6;
+  const pasoY=(yMax-yMin)<=140?20:40;
+  yMin=Math.floor(yMin/pasoY)*pasoY;
+  yMax=yMin+Math.ceil((yMax-yMin)/pasoY)*pasoY;
+  const ySteps=Math.round((yMax-yMin)/pasoY);
   ctx.lineWidth=1; ctx.font='10px -apple-system,Arial,sans-serif';
   for(let i=0;i<=ySteps;i++){
     const yv=yMin+(yMax-yMin)*i/ySteps, yy=Y(yv);
@@ -2662,20 +2666,37 @@ function nuevoRegistro(){
 }
 
 /* ============ EXPORTAR PDF ============ */
-function captureChartImage(){
+function captureChartImage(tam){
   if(!registros.length && !chartNotes.length)return null;
   try{
+    if(tam){
+      /* Lienzo aparte, grande y a doble resolución, para la página del gráfico */
+      const off=document.createElement('canvas');
+      if(renderChart({canvas:off,cssW:tam.w,cssH:tam.h,dpr:2})===false)return null;
+      return {src:off.toDataURL('image/png'),ratio:tam.h/tam.w};
+    }
     const cv=document.getElementById('trendChart');
     if(!cv)return null;
     renderChart();
     if(cv.style.display==='none')return null;
-    return cv.toDataURL('image/png');
+    return {src:cv.toDataURL('image/png'),ratio:cv.width>0?cv.height/cv.width:0.5};
   }catch(e){return null;}
 }
 /* Texto apto para las fuentes estándar del PDF (no tienen subíndices Unicode) */
 function pdfTxt(s){
-  return String(s==null?'':s).replace(/₀/g,'0').replace(/₁/g,'1').replace(/₂/g,'2').replace(/₃/g,'3')
+  /* µ (micro) no existe en la fuente del PDF: "µg" saldría como "g" (error de x1000).
+     Se escribe "mcg", notación clínica estándar. */
+  return String(s==null?'':s).replace(/[µμ]g/g,'mcg').replace(/[µμ]/g,'mc')
+    .replace(/₀/g,'0').replace(/₁/g,'1').replace(/₂/g,'2').replace(/₃/g,'3')
     .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/→/g,'->');
+}
+/* Duración entre dos horas HH:MM, en "X h Y min" (si cruza la medianoche suma 24 h) */
+function duracionEntre(a,b){
+  const ma=chartClockMin(a), mb=chartClockMin(b);
+  if(ma==null||mb==null)return '—';
+  let d=mb-ma; if(d<0)d+=1440;
+  const h=Math.floor(d/60), m=d%60;
+  return h?(h+' h '+p2(m)+' min'):(m+' min');
 }
 /* Abreviaturas fijas del plano anestésico para la tabla del PDF (con leyenda) */
 const PLANO_ABREV={'Superficial':'Sup','Quirúrgico ligero':'Q-lig','Quirúrgico medio':'Q-med','Quirúrgico profundo':'Q-prof'};
@@ -2685,10 +2706,9 @@ function notasOrdenadas(){
   return chartNotes.slice().sort((a,b)=>{const ca=minAbs(a.time,A),cb=minAbs(b.time,A);return (ca==null?0:ca)-(cb==null?0:cb);});
 }
 
-function exportPDF(orient){
-  /* dispatcher: elige orientación */
-  if(orient===undefined){orient=(document.getElementById('f_orient')||{}).value||'portrait';}
-  return construirPDF(orient,true);
+function exportPDF(){
+  /* El PDF siempre se genera en hoja horizontal */
+  return construirPDF('landscape',true);
 }
 function setOrient(orient,btn){
   const hid=document.getElementById('f_orient');if(hid)hid.value=orient;
@@ -2703,28 +2723,64 @@ function exportPDFLandscape(){return construirPDF('landscape',true);}
      no cabe, la columna continúa en la página siguiente: nada queda fuera de la hoja.
    - Pie con "Página X de N" y encabezado de continuación en cada página. */
 function construirPDF(orient,descargar){
+  /* 1º intento: todo en una sola hoja horizontal. Si no cabe, el gráfico de
+     tendencias y el registro intraoperatorio pasan a hojas propias. */
+  let r=generarDocPDF('una');
+  if(r.doc.getNumberOfPages()>1) r=generarDocPDF('separada');
+  const doc=r.doc, total=doc.getNumberOfPages();
+  const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+r.fechaTxt+'.pdf';
+  if(descargar){
+    /* iOS Safari: doc.save() no descarga, abre tab. Usamos datauri con <a> */
+    try{
+      const ua=navigator.userAgent||'';
+      const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
+      if(isIOS || isSafari){
+        const dataUri=doc.output('datauristring');
+        const a=document.createElement('a');
+        a.href=dataUri; a.download=fn; a.target='_blank';
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>document.body.removeChild(a),200);
+      } else { doc.save(fn); }
+    } catch(e){ doc.save(fn); }
+    toast('📄 PDF generado ('+total+' página'+(total>1?'s':'')+') — revisa Descargas o la pestaña abierta');
+  }
+  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn, paginas: total, modo: r.modo };
+}
+
+/* modo 'una': 3 columnas en una hoja (datos | farmacología | gráfico + registro).
+   modo 'separada': hoja(s) de datos clínicos en 3 columnas, luego una hoja para
+   el gráfico de tendencias y otra(s) para el registro intraoperatorio, a ancho completo. */
+function generarDocPDF(modo){
   const {jsPDF}=window.jspdf;
-  const L=orient==='landscape';
-  const doc=new jsPDF({orientation:L?'landscape':'portrait',unit:'mm',format:'a4'});
-  const W=L?297:210, H=L?210:297, M=8;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const W=297, H=210, M=8;
   const teal=[29,158,117],tealD=[15,110,86],grayT=[110,116,112],ink=[26,36,32],soft=[240,244,242],zebra=[248,250,249];
-  const gap=6, ncol=L?3:2;
-  const colW=(W-2*M-gap*(ncol-1))/ncol;
-  const colX=[];for(let i=0;i<ncol;i++)colX.push(M+i*(colW+gap));
-  const top=L?24:26, topCont=18, bottom=H-(L?8:9);
-  const F=L?{sec:8.5,secH:6.5,secAfter:9.5,lab:7.5,valF:8,kvStep:4.7,kvLine:3.9,kvOff:26,drugF:7.5,drugT:3.9,drugL:3.5,drugAfter:1.8,tbl:6.2,noteF:6.5,noteL:3.1,gapSec:2}
-           :{sec:8,  secH:6,  secAfter:8.5,lab:7,  valF:7.5,kvStep:4.3,kvLine:3.6,kvOff:25,drugF:7,  drugT:3.6,drugL:3.3,drugAfter:1.5,tbl:5.6,noteF:6,  noteL:2.9,gapSec:1.5};
-  const y=[],pg=[];for(let i=0;i<ncol;i++){y.push(top);pg.push(1);}
+  const gap=6, top=24, topCont=18, bottom=H-8;
+  const F={sec:8.5,secH:6.5,secAfter:9.5,lab:7.5,valF:8,kvStep:4.7,kvLine:3.9,kvOff:26,drugF:7.5,drugT:3.9,drugL:3.5,drugAfter:1.8,tbl:6.2,noteF:6.5,noteL:3.1,gapSec:2};
+  let colW=(W-2*M-2*gap)/3;
+  let colX=[M, M+colW+gap, M+2*(colW+gap)];
+  let y=[top,top,top], pg=[1,1,1];
+  let enColumnas=true;
+  const paginasColumnas=new Set([1]);
 
   function usar(c){doc.setPage(pg[c]);}
-  /* Asegura h mm libres en la columna c; si no caben, pasa a la página siguiente */
   function asegurar(c,h){
     if(y[c]+h>bottom-2){
       pg[c]++;
       while(doc.getNumberOfPages()<pg[c]) doc.addPage();
       y[c]=topCont+4;
+      if(enColumnas) paginasColumnas.add(pg[c]);
     }
     usar(c);
+  }
+  /* Abre una hoja nueva a ancho completo (después de todas las existentes) */
+  function hojaCompleta(){
+    doc.addPage();
+    const n=doc.getNumberOfPages();
+    enColumnas=false;
+    colW=W-2*M; colX=[M]; y=[topCont+4]; pg=[n];
+    usar(0);
   }
   function clip(s,w){s=String(s);const max=Math.floor(w/1.5);return s.length>max?s.substring(0,max-1)+'…':s;}
   function section(c,title){
@@ -2745,7 +2801,7 @@ function construirPDF(orient,descargar){
     doc.text(pdfTxt(l),x,y[c]);
     doc.setFont('helvetica','normal');doc.setFontSize(F.valF);doc.setTextColor(...ink);
     lines.forEach((ln,i)=>{
-      if(i>0){y[c]+=F.kvLine;asegurar(c,F.kvLine);}
+      if(i>0){y[c]+=F.kvLine;asegurar(c,F.kvLine);doc.setFont('helvetica','normal');doc.setFontSize(F.valF);doc.setTextColor(...ink);}
       doc.text(ln,x+F.kvOff,y[c]);
     });
     y[c]+=lines.length>1?F.kvLine+0.7:F.kvStep;
@@ -2761,17 +2817,17 @@ function construirPDF(orient,descargar){
     doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.setFontSize(F.valF);doc.text(clip(pdfTxt(v2||'—'),half-o2),x+half+o2,yy);
     y[c]=yy+F.kvStep;
   }
-  function lista(c,title,arr,fs,lh,color){
+  function lista(c,title,arr,fs,lh){
     if(!arr.length)return;
     if(title){
       asegurar(c,F.drugT+lh);
       doc.setFont('helvetica','bold');doc.setFontSize(fs);doc.setTextColor(...tealD);
       doc.text(pdfTxt(title),colX[c],y[c]);y[c]+=F.drugT;
     }
-    doc.setFont('helvetica','normal');doc.setFontSize(fs);doc.setTextColor(...(color||[50,55,52]));
     arr.forEach(line=>{
+      doc.setFont('helvetica','normal');doc.setFontSize(fs);
       const ls=doc.splitTextToSize('• '+pdfTxt(line),colW-2);
-      ls.forEach(t=>{asegurar(c,lh);doc.setFont('helvetica','normal');doc.setFontSize(fs);doc.setTextColor(...(color||[50,55,52]));doc.text(t,colX[c]+1,y[c]);y[c]+=lh;});
+      ls.forEach(t=>{asegurar(c,lh);doc.setFont('helvetica','normal');doc.setFontSize(fs);doc.setTextColor(50,55,52);doc.text(t,colX[c]+1,y[c]);y[c]+=lh;});
     });
     y[c]+=F.drugAfter;
   }
@@ -2816,13 +2872,14 @@ function construirPDF(orient,descargar){
   }
   function secTiempos(c){
     section(c,'Tiempos');
-    kvPair(c,'Inducción',val('f_hora_induccion'),'Inicio cx',val('f_hora_inicio'));
-    kvPair(c,'Fin cx',val('f_hora_fin'),'Extubación',val('f_extub'));
+    kvPair(c,'MPA',val('f_hora_mpa'),'Inducción',val('f_hora_induccion'));
+    kvPair(c,'Inicio cx',val('f_hora_inicio'),'Fin cx',val('f_hora_fin'));
+    kvPair(c,'Extubación',val('f_extub'),'',' ');
+    kvPair(c,'T. anestésico',duracionEntre(val('f_hora_mpa'),val('f_extub')),'T. cirugía',duracionEntre(val('f_hora_inicio'),val('f_hora_fin')));
     y[c]+=F.gapSec;
   }
   function secFarm(c){
     section(c,'Farmacología');
-    if(val('f_hora_mpa'))kv(c,'Hora MPA',val('f_hora_mpa'));
     drugs(c,'Premedicación (MPA)',getDrugs('list-mpa').map(drugLine));
     drugs(c,'Inducción',getDrugs('list-ind').map(drugLine));
     drugs(c,'Mantenimiento',getDrugs('list-mant').map(drugLine));
@@ -2844,55 +2901,58 @@ function construirPDF(orient,descargar){
     if(sc.length)kv(c,'Calidad',sc.join(' · ')+' (1 excelente – 4 deficiente)');
     drugs(c,'Medicación postop.',getDrugs('list-postop').map(drugLine));
     if(val('f_recom'))kv(c,'Recom.',val('f_recom'));
+    y[c]+=F.gapSec;
   }
-  function secTendencias(c){
-    const img=captureChartImage();
-    if(!img)return;
-    section(c,'Tendencias');
-    const chartCv=document.getElementById('trendChart');
-    const ratio=chartCv&&chartCv.width>0?(chartCv.height/chartCv.width):(340/680);
-    const imgH=colW*ratio;
-    asegurar(c,imgH+1);
-    try{doc.addImage(img,'PNG',colX[c],y[c],colW,imgH);}catch(e){}
-    y[c]+=imgH+2.5;
+  /* Gráfico: pequeño dentro de una columna, o a página completa */
+  function secTendencias(c,grande){
+    const img=grande?captureChartImage({w:1100,h:560}):captureChartImage();
+    if(!img)return false;
+    section(c,grande?'Gráfico de tendencias':'Tendencias');
+    let w=colW, h=w*img.ratio;
+    const disp=bottom-4-y[c];
+    if(grande && h>disp){h=disp;w=h/img.ratio;}
+    asegurar(c,h+1);
+    try{doc.addImage(img.src,'PNG',colX[c]+(colW-w)/2,y[c],w,h);}catch(e){}
+    y[c]+=h+2.5;
+    return true;
   }
   function tablaRegistro(c){
     const x=colX[c],width=colW;
-    const labelW=Math.max(9,width*0.11), availW=width-labelW, minColW=8.5;
+    const fs=enColumnas?F.tbl:7.2;
+    const labelW=enColumnas?Math.max(9,width*0.11):16, availW=width-labelW, minColW=enColumnas?8.5:9.6;
     const perBlock=Math.max(3,Math.floor(availW/minColW));
     const filas=[
       {label:'Min',get:r=>String(r.min)},
-      ...params.map(p=>({label:pdfTxt(p.label).slice(0,6),get:r=>{
+      ...params.map(p=>({label:pdfTxt(p.label).slice(0,enColumnas?6:10),get:r=>{
         const v=r.vals&&r.vals[p.key];
         if(v==null||v==='')return '—';
-        return pdfTxt(v)+(p.key==='pam'&&r.pamEst?'*':'');
+        return pdfTxt(v);
       }})),
       {label:'Plano',get:r=>r.plano?(PLANO_ABREV[r.plano]||pdfTxt(r.plano).slice(0,6)):'—'},
     ];
-    const rowH=registros.length>24?3.0:(registros.length>14?3.6:4.1);
+    const rowH=enColumnas?(registros.length>24?3.0:(registros.length>14?3.6:4.1)):4.4;
     for(let start=0;start<registros.length;start+=perBlock){
       const block=registros.slice(start,start+perBlock);
-      const colW2=availW/block.length;
-      asegurar(c,5+filas.length*rowH+2);
+      const colW2=availW/perBlock;      /* columnas de ancho fijo: no se estiran en el último bloque */
+      asegurar(c,5+filas.length*rowH+3);
       let yy=y[c]+3.2;
       doc.setFillColor(...soft);doc.rect(x,yy-3.2,width,5,'F');
-      doc.setFont('helvetica','bold');doc.setFontSize(F.tbl);doc.setTextColor(...tealD);
+      doc.setFont('helvetica','bold');doc.setFontSize(fs);doc.setTextColor(...tealD);
       doc.text('Hora',x+labelW/2,yy,{align:'center'});
       block.forEach((r,i)=>{doc.text(pdfTxt(r.time||String(r.min)),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
-      yy+=3;
-      doc.setDrawColor(...teal);doc.setLineWidth(0.3);doc.line(x,yy-1.5,x+width,yy-1.5);
+      yy+=4.6;
+      doc.setDrawColor(...teal);doc.setLineWidth(0.3);doc.line(x,yy-3.1,x+width,yy-3.1);
       filas.forEach((rd,ri)=>{
-        if(ri%2===1){doc.setFillColor(...zebra);doc.rect(x,yy-2.4,width,rowH,'F');}
-        doc.setFont('helvetica','bold');doc.setFontSize(F.tbl);doc.setTextColor(...grayT);
+        if(ri%2===1){doc.setFillColor(...zebra);doc.rect(x,yy-rowH*0.62,width,rowH,'F');}
+        doc.setFont('helvetica','bold');doc.setFontSize(fs);doc.setTextColor(...grayT);
         doc.text(rd.label,x+1.5,yy);
         doc.setFont('helvetica','normal');doc.setTextColor(...ink);
         block.forEach((r,i)=>{doc.text(rd.get(r),x+labelW+i*colW2+colW2/2,yy,{align:'center'});});
         yy+=rowH;
       });
-      y[c]=yy+2;
+      y[c]=yy+2.5;
     }
     if(registros.some(r=>r.plano)) nota(c,'Plano: Sup = superficial; Q-lig / Q-med / Q-prof = quirúrgico ligero / medio / profundo.');
-    if(registros.some(r=>r.pamEst)) nota(c,'* PAM estimada = PAD + (PAS - PAD)/3; no medida.');
     y[c]+=1;
   }
   function secRegistro(c){
@@ -2901,38 +2961,46 @@ function construirPDF(orient,descargar){
     tablaRegistro(c);
     const notas=registros.filter(r=>r.nota);
     if(notas.length){
-      lista(c,'Notas del registro',notas.map(r=>{const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);return parts.join(' — ');}),F.noteF+0.5,F.noteL);
+      lista(c,'Notas del registro',notas.map(r=>{const parts=[r.time||r.min+"'"];if(r.plano)parts.push(r.plano);parts.push(r.nota);return parts.join(' — ');}),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
     }
     y[c]+=F.gapSec;
   }
   function secNotas(c){
     if(!chartNotes.length)return;
     section(c,'Notas intraquirúrgicas y eventos');
-    lista(c,'',notasOrdenadas().map(n=>n.time+' — '+n.notes.join(' / ')),F.noteF+0.5,F.noteL);
+    lista(c,'',notasOrdenadas().map(n=>n.time+' — '+n.notes.join(' / ')),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
   }
 
-  /* ---------- ENCABEZADO PÁGINA 1 ---------- */
+  /* ---------- ENCABEZADO HOJA 1 ---------- */
   const fechaTxt=val('f_fecha')||fechaLocalISO();
   const logoH=10, logoW=logoH*3.046;
-  try{ doc.addImage(LOGO_SOMNUS,'PNG',M,L?5:6,logoW,logoH); }
-  catch(e){ doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('SOMNUS',M,L?13:14); }
-  doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(L?13:12);
-  doc.text('REGISTRO DE ANESTESIA',W-M,L?10:11,{align:'right'});
-  doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(L?8:7.5);
-  doc.text(pdfTxt((val('f_clinica')||'')+(val('f_clinica')?'  ·  ':'')+fechaTxt),W-M,L?15:16,{align:'right'});
-  doc.setDrawColor(...teal);doc.setLineWidth(0.7);doc.line(M,L?18.5:20,W-M,L?18.5:20);
+  try{ doc.addImage(LOGO_SOMNUS,'PNG',M,5,logoW,logoH); }
+  catch(e){ doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('SOMNUS',M,13); }
+  doc.setTextColor(...tealD);doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('REGISTRO DE ANESTESIA',W-M,10,{align:'right'});
+  doc.setTextColor(...grayT);doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text(pdfTxt((val('f_clinica')||'')+(val('f_clinica')?'  ·  ':'')+fechaTxt),W-M,15,{align:'right'});
+  doc.setDrawColor(...teal);doc.setLineWidth(0.7);doc.line(M,18.5,W-M,18.5);
 
   /* ---------- CONTENIDO ---------- */
-  if(L){
+  if(modo==='una'){
     secIdent(0);secPreop(0);secTecnica(0);
     secTiempos(1);secFarm(1);secRecup(1);
-    secTendencias(2);secRegistro(2);secNotas(2);
+    secTendencias(2,false);secRegistro(2);secNotas(2);
   }else{
-    secIdent(0);secPreop(0);secTecnica(0);secTiempos(0);secFarm(0);secRecup(0);
-    secTendencias(1);secRegistro(1);secNotas(1);
+    secIdent(0);secPreop(0);secTecnica(0);
+    secTiempos(1);secFarm(1);
+    secRecup(2);
+    secNotas(2);              /* notas y eventos junto a los datos clínicos */
+    if(registros.length||chartNotes.length){
+      hojaCompleta();
+      if(!secTendencias(0,true)) nota(0,'Sin datos para el gráfico.');
+    }
+    hojaCompleta();
+    secRegistro(0);
   }
 
-  /* ---------- PIE, CONTINUACIÓN Y DIVISORES EN CADA PÁGINA ---------- */
+  /* ---------- PIE, CONTINUACIÓN Y DIVISORES ---------- */
   const total=doc.getNumberOfPages();
   for(let i=1;i<=total;i++){
     doc.setPage(i);
@@ -2943,32 +3011,17 @@ function construirPDF(orient,descargar){
       doc.text(pdfTxt((val('f_paciente')||'Paciente')+'  ·  '+fechaTxt),W-M,11,{align:'right'});
       doc.setDrawColor(...teal);doc.setLineWidth(0.5);doc.line(M,topCont-4,W-M,topCont-4);
     }
-    doc.setDrawColor(230,234,232);doc.setLineWidth(0.25);
-    for(let c=1;c<ncol;c++) doc.line(colX[c]-gap/2,i===1?top:topCont,colX[c]-gap/2,bottom-3);
+    if(paginasColumnas.has(i)){
+      const cw=(W-2*M-2*gap)/3;
+      doc.setDrawColor(230,234,232);doc.setLineWidth(0.25);
+      for(let c=1;c<3;c++){const xx=M+c*(cw+gap)-gap/2;doc.line(xx,i===1?top:topCont,xx,bottom-3);}
+    }
     doc.setDrawColor(220,225,222);doc.setLineWidth(0.3);doc.line(M,bottom,W-M,bottom);
-    doc.setFont('helvetica','normal');doc.setFontSize(L?7:6.5);doc.setTextColor(150,156,152);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(150,156,152);
     doc.text('SOMNUS Anestesiología · Documento clínico veterinario',M,bottom+4);
     doc.text('Generado '+new Date().toLocaleString('es-CL')+'  ·  Página '+i+' de '+total,W-M,bottom+4,{align:'right'});
   }
-
-  const fn='Registro-anestesia_'+(val('f_paciente')||'paciente').replace(/[^\wáéíóúñ]/gi,'-')+'_'+fechaTxt+'.pdf';
-  if(descargar){
-    /* iOS Safari: doc.save() no descarga, abre tab. Usamos datauri con <a> */
-    try{
-      const ua=navigator.userAgent||'';
-      const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-      const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
-      if(isIOS || isSafari){
-        const dataUri=doc.output('datauristring');
-        const a=document.createElement('a');
-        a.href=dataUri; a.download=fn; a.target='_blank';
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>document.body.removeChild(a),200);
-      } else { doc.save(fn); }
-    } catch(e){ doc.save(fn); }
-    toast('📄 PDF generado ('+total+' página'+(total>1?'s':'')+') — revisa Descargas o la pestaña abierta');
-  }
-  return { blob: new Blob([doc.output('arraybuffer')], {type:'application/pdf'}), fn, paginas: total };
+  return {doc, fechaTxt, modo};
 }
 
 
@@ -2982,7 +3035,7 @@ async function generarPDFBlob(){
   let resultado;
   try {
     /* Solo genera el archivo para compartirlo; no lo descarga aparte */
-    resultado = construirPDF(orient === 'landscape' ? 'landscape' : 'portrait', false);
+    resultado = construirPDF('landscape', false);
   } catch(e) {
     toast('Error al generar el PDF');
     console.error(e);
