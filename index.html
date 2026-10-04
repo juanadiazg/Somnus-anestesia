@@ -1400,6 +1400,7 @@ let registros=[];
 let drugCounter=0;
 let scales={mpa:null,ind:null,intub:null,recup:null};
 let chartNotes=[];           // [{t, time, notes:[str,str]}]
+let emergenciaEventos=[];    // [{hora:'HH:MM:SS', hm:'HH:MM', t, texto}]
 
 /* Parámetros por defecto + personalizados. fixed=true => no se puede eliminar */
 let params=[
@@ -2175,7 +2176,7 @@ function renderChart(dest){
   if(!cv)return false;
   const pts=registros.filter(r=>r.vals);
   const hasData=pts.length>0;
-  const hasMarkers=chartNotes.length>0||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin');
+  const hasMarkers=chartNotes.length>0||emergenciaEventos.length>0||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin');
   if(!hasData&&!hasMarkers){if(!dest){if(empty)empty.style.display='block';cv.style.display='none';}return false;}
   if(!dest){if(empty)empty.style.display='none';cv.style.display='block';}
 
@@ -2206,7 +2207,8 @@ function renderChart(dest){
   const finCxTime=val('f_hora_fin');
   const finX=finCxTime?minAbs(finCxTime,A):null;
   const noteX=chartNotes.map(evX);
-  const allTimeVals=[...xs,indX,extX,iniX,finX,...noteX].filter(v=>v!=null);
+  const emgX=emergenciaEventos.map(e=>minAbs(e.hm,A));
+  const allTimeVals=[...xs,indX,extX,iniX,finX,...noteX,...emgX].filter(v=>v!=null);
   let xMin=allTimeVals.length?Math.min(...allTimeVals):0;
   let xMax=allTimeVals.length?Math.max(...allTimeVals):10;
   if(xMax-xMin<10){xMax=xMin+10;}
@@ -2359,6 +2361,22 @@ function renderChart(dest){
     ctx.stroke();
   });
 
+  /* === Marcas de eventos de emergencia === */
+  emergenciaEventos.forEach((ev,ei)=>{
+    const xe0=emgX[ei];
+    if(xe0==null)return;
+    const xe=X(xe0);
+    if(xe<padL||xe>padL+plotW)return;
+    const ey=padT+28;
+    ctx.fillStyle='#A32D2D';
+    ctx.beginPath();
+    ctx.moveTo(xe,ey-6); ctx.lineTo(xe+6,ey+5); ctx.lineTo(xe-6,ey+5);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 8px -apple-system,Arial,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('!',xe,ey+1);
+  });
+
   /* === Leyenda lado derecho === */
   const lx=cssW-padR+6, lSZ=4;
   ctx.font='10px -apple-system,Arial,sans-serif';
@@ -2445,7 +2463,7 @@ function renderChart(dest){
   ];
   legendItems.forEach(([sym,lbl],i)=>drawLegendItem(sym,lbl,padT+i*17));
 }
-window.addEventListener('resize',()=>{if(registros.length||chartNotes.length||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin'))renderChart();});
+window.addEventListener('resize',()=>{if(registros.length||chartNotes.length||emergenciaEventos.length||val('f_hora_induccion')||val('f_extub')||val('f_hora_inicio')||val('f_hora_fin'))renderChart();});
 
 /* ============ MARCADORES Y NOTAS DE GRÁFICO ============ */
 /* Sincroniza la UI de los marcadores (botón vs. campo de hora editable) */
@@ -2530,27 +2548,36 @@ const EMERGENCIA_FARMACOS=[
 const EMERGENCIA_MANIOBRAS=['Inicio RCP','Compresiones','Desfibrilación','ROSC','Fin RCP'];
 
 /* Registra un evento con la hora actual; aparece en el gráfico y en las notas */
+/* Eventos de emergencia: registro propio, con segundos y una línea por evento,
+   para poder reconstruir la cronología de una reanimación. */
 function registrarEventoEmergencia(texto){
   tickTimer();
   const now=new Date();
-  const time=p2(now.getHours())+':'+p2(now.getMinutes());
-  const grupo=chartNotes.find(n=>n.time===time);
-  if(grupo){
-    if(grupo.notes.length<2) grupo.notes.push(texto);
-    else grupo.notes[1]+=' / '+texto;
-  }else{
-    chartNotes.push({t:timerSecs,time,notes:[texto]});
-  }
-  guardarSesion(true);renderChart();renderChartNotes();
-  toast('🚨 '+texto+' · '+time);
+  const hora=p2(now.getHours())+':'+p2(now.getMinutes())+':'+p2(now.getSeconds());
+  const hm=p2(now.getHours())+':'+p2(now.getMinutes());
+  emergenciaEventos.push({hora,hm,t:timerSecs,texto});
+  guardarSesion(true);renderChart();
+  toast('🚨 '+texto+' · '+hora);
   const log=document.getElementById('emg-log');
   if(log) log.innerHTML=renderEmergenciaLog();
 }
 function renderEmergenciaLog(){
-  const ev=notasOrdenadas();
-  if(!ev.length) return '<div style="color:var(--muted);font-size:13px">Sin eventos registrados</div>';
-  return ev.map(n=>'<div style="display:flex;gap:8px;padding:3px 0;font-size:13px">'+
-    '<b style="color:var(--teal-d);min-width:42px">'+esc(n.time)+'</b><span>'+esc(n.notes.join(' / '))+'</span></div>').join('');
+  if(!emergenciaEventos.length) return '<div style="color:var(--muted);font-size:13px">Sin eventos registrados</div>';
+  return emergenciaEventos.map((e,i)=>
+    '<div style="display:flex;gap:8px;align-items:baseline;padding:3px 0;font-size:13px;border-bottom:1px solid var(--line-soft)">'+
+    '<b style="color:var(--red);min-width:62px;font-variant-numeric:tabular-nums">'+esc(e.hora)+'</b>'+
+    '<span style="flex:1">'+esc(e.texto)+'</span>'+
+    '<button data-action="borrarEventoEmg" data-idx="'+i+'" title="Quitar" '+
+    'style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>'+
+    '</div>').join('');
+}
+function borrarEventoEmergencia(i){
+  if(i>=0&&i<emergenciaEventos.length){
+    emergenciaEventos.splice(i,1);
+    guardarSesion(true);renderChart();
+    const log=document.getElementById('emg-log');
+    if(log) log.innerHTML=renderEmergenciaLog();
+  }
 }
 function emergenciaPeso(){
   return parseFloat(val('f_peso')||(document.getElementById('vivo-peso')||{}).value||'')||0;
@@ -2686,7 +2713,7 @@ function limpiarFormulario(){
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   const ajo=document.getElementById('aj_farmaco_otro');if(ajo)ajo.remove();
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
-  chartNotes=[];emergenciaOverrides={};
+  chartNotes=[];emergenciaOverrides={};emergenciaEventos=[];
   params=params.filter(p=>p.fixed);
   detenerTimer();
   currentSid=nuevoSid();
@@ -3014,6 +3041,12 @@ function generarDocPDF(modo){
     section(c,'Notas intraquirúrgicas y eventos');
     lista(c,'',notasOrdenadas().map(n=>n.time+' — '+n.notes.join(' / ')),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
   }
+  /* Cronología de reanimación: una línea por evento, con segundos */
+  function secEmergencia(c){
+    if(!emergenciaEventos.length)return;
+    section(c,'Eventos de emergencia');
+    lista(c,'',emergenciaEventos.map(e=>e.hora+' — '+e.texto),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
+  }
 
   /* ---------- ENCABEZADO HOJA 1 ---------- */
   const fechaTxt=val('f_fecha')||fechaLocalISO();
@@ -3030,13 +3063,14 @@ function generarDocPDF(modo){
   if(modo==='una'){
     secIdent(0);secPreop(0);secTecnica(0);
     secTiempos(1);secFarm(1);secRecup(1);
-    secTendencias(2,false);secRegistro(2);secNotas(2);
+    secTendencias(2,false);secRegistro(2);secNotas(2);secEmergencia(2);
   }else{
     secIdent(0);secPreop(0);secTecnica(0);
     secTiempos(1);secFarm(1);
     secRecup(2);
     secNotas(2);              /* notas y eventos junto a los datos clínicos */
-    if(registros.length||chartNotes.length){
+    secEmergencia(2);
+    if(registros.length||chartNotes.length||emergenciaEventos.length){
       hojaCompleta();
       if(!secTendencias(0,true)) nota(0,'Sin datos para el gráfico.');
     }
@@ -3267,7 +3301,8 @@ function estadoAJSON(){
     timerStartMs,
     sid:          currentSid,
     chartNotes:   JSON.parse(JSON.stringify(chartNotes)),
-    emergenciaOverrides: JSON.parse(JSON.stringify(emergenciaOverrides))
+    emergenciaOverrides: JSON.parse(JSON.stringify(emergenciaOverrides)),
+    emergenciaEventos:   JSON.parse(JSON.stringify(emergenciaEventos))
   };
 }
 
@@ -3363,6 +3398,7 @@ function restaurarSesion(estado){
   currentSid  = estado.sid || nuevoSid();
   chartNotes       = estado.chartNotes       || [];
   emergenciaOverrides = estado.emergenciaOverrides || {};
+  emergenciaEventos   = estado.emergenciaEventos   || [];
   /* Compatibilidad: sesiones guardadas cuando inducción/extubación eran marcadores.
      Se vuelca su hora a los campos de "Configuración de registro". */
   if(estado.inductionMarker && estado.inductionMarker.time){
@@ -3812,6 +3848,7 @@ function init(){
       case 'openEmergencia':  openEmergencia(); break;
       case 'eventoEmergencia': registrarEventoEmergencia(el.dataset.evento); break;
       case 'registrarFarmacoEmg': registrarFarmacoEmergencia(parseInt(el.dataset.idx)); break;
+      case 'borrarEventoEmg': borrarEventoEmergencia(parseInt(el.dataset.idx)); break;
       case 'registrar':       registrar(); break;
       case 'limpiarReg':      limpiarReg(); break;
       case 'setOrient':       setOrient(orient, el); break;
