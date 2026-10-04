@@ -2528,7 +2528,7 @@ const EMERGENCIA_FARMACOS=[
   {n:'Atipamezol (rev. α2)',   d:0.1,  c:5,   via:'IM'},
   {n:'Efedrina',               d:0.1,  c:50,  via:'IV'},
 ];
-const EMERGENCIA_MANIOBRAS=['Inicio RCP','Adrenalina','Atropina','Desfibrilación','ROSC','Fin RCP'];
+const EMERGENCIA_MANIOBRAS=['Inicio RCP','Compresiones','Desfibrilación','ROSC','Fin RCP'];
 
 /* Registra un evento con la hora actual; aparece en el gráfico y en las notas */
 function registrarEventoEmergencia(texto){
@@ -2556,29 +2556,74 @@ function renderEmergenciaLog(){
 function emergenciaPeso(){
   return parseFloat(val('f_peso')||(document.getElementById('vivo-peso')||{}).value||'')||0;
 }
+/* Dosis y concentraciones ajustadas por el usuario para este registro */
+let emergenciaOverrides={};
+function emgDatos(i){
+  const f=EMERGENCIA_FARMACOS[i], o=emergenciaOverrides[f.n]||{};
+  return {n:f.n, via:f.via, d:(o.d!=null?o.d:f.d), c:(o.c!=null?o.c:f.c)};
+}
+/* Recalcula una fila al editar su dosis o concentración */
+function emgRecalcular(i){
+  const f=EMERGENCIA_FARMACOS[i], peso=emergenciaPeso();
+  const dEl=document.getElementById('emg-d-'+i), cEl=document.getElementById('emg-c-'+i);
+  if(!dEl||!cEl)return;
+  const d=parseFloat(dEl.value), c=parseFloat(cEl.value);
+  emergenciaOverrides[f.n]={d:isNaN(d)?f.d:d, c:isNaN(c)?f.c:c};
+  const dd=emergenciaOverrides[f.n].d, cc=emergenciaOverrides[f.n].c;
+  const mg=dd*peso, ml=cc?mg/cc:0;
+  const mgEl=document.getElementById('emg-mg-'+i), mlEl=document.getElementById('emg-ml-'+i);
+  if(mgEl) mgEl.textContent = peso ? (Math.round(mg*1000)/1000)+' mg' : '—';
+  if(mlEl) mlEl.textContent = (peso&&cc) ? (Math.round(ml*100)/100)+' mL' : '—';
+  guardarSesion(false);
+}
+/* Toca el fármaco: registra la administración con hora, dosis y volumen reales */
+function registrarFarmacoEmergencia(i){
+  const peso=emergenciaPeso();
+  if(!peso){toast('Ingresa el peso del paciente');return;}
+  const f=emgDatos(i);
+  const mg=f.d*peso, ml=f.c?mg/f.c:0;
+  registrarEventoEmergencia(f.n+' '+(Math.round(mg*1000)/1000)+' mg ('+(Math.round(ml*100)/100)+' mL) '+f.via);
+}
 function renderEmergenciaTabla(){
   const peso=emergenciaPeso();
-  if(!peso){
-    return '<div style="background:var(--red-l);color:var(--red);padding:10px;border-radius:8px;font-size:13px;font-weight:600">'+
-      'Ingresa el peso del paciente para calcular las dosis.</div>';
-  }
-  return '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
-    '<thead><tr style="background:var(--surf);font-size:11px;text-transform:uppercase;color:var(--muted)">'+
-    '<th style="padding:6px;text-align:left">Fármaco</th><th style="padding:6px;text-align:right">Dosis</th>'+
-    '<th style="padding:6px;text-align:right">Total</th><th style="padding:6px;text-align:right">Volumen</th>'+
-    '<th style="padding:6px;text-align:left">Vía</th></tr></thead><tbody>'+
-    EMERGENCIA_FARMACOS.map(f=>{
-      const mg=f.d*peso, ml=mg/f.c;
+  const aviso = peso ? '' :
+    '<div style="background:var(--red-l);color:var(--red);padding:9px 11px;border-radius:8px;'+
+    'font-size:12.5px;font-weight:600;margin-bottom:10px">Ingresa el peso del paciente para calcular los volúmenes.</div>';
+  const numCss='width:66px;text-align:right;border:1px solid var(--line);border-radius:6px;padding:6px;'+
+    'font-size:13px;font-family:inherit;font-variant-numeric:tabular-nums';
+  return aviso+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+    '<thead><tr style="background:var(--surf);font-size:10.5px;text-transform:uppercase;color:var(--muted)">'+
+      '<th style="padding:6px;text-align:left">Fármaco · toca para registrar</th>'+
+      '<th style="padding:6px;text-align:right">Dosis mg/kg</th>'+
+      '<th style="padding:6px;text-align:right">Conc. mg/mL</th>'+
+      '<th style="padding:6px;text-align:right">Total</th>'+
+      '<th style="padding:6px;text-align:right">Volumen</th>'+
+    '</tr></thead><tbody>'+
+    EMERGENCIA_FARMACOS.map((f0,i)=>{
+      const f=emgDatos(i);
+      const mg=f.d*peso, ml=f.c?mg/f.c:0;
       return '<tr style="border-bottom:1px solid var(--line-soft)">'+
-        '<td style="padding:6px;font-weight:600">'+f.n+'</td>'+
-        '<td style="padding:6px;text-align:right;color:var(--muted)">'+f.d+' mg/kg</td>'+
-        '<td style="padding:6px;text-align:right;font-variant-numeric:tabular-nums">'+(Math.round(mg*1000)/1000)+' mg</td>'+
-        '<td style="padding:6px;text-align:right;font-weight:700;color:var(--teal-d);font-variant-numeric:tabular-nums">'+
-          (Math.round(ml*100)/100)+' mL</td>'+
-        '<td style="padding:6px;color:var(--muted)">'+f.via+'</td></tr>';
+        '<td style="padding:4px 6px">'+
+          '<button data-action="registrarFarmacoEmg" data-idx="'+i+'" '+
+          'style="width:100%;text-align:left;min-height:42px;border:1px solid var(--red-b);background:#FFF7F7;'+
+          'color:var(--red);font-weight:700;font-size:13px;border-radius:8px;padding:6px 9px;cursor:pointer;'+
+          'font-family:inherit;line-height:1.25">'+f.n+
+          '<span style="display:block;font-weight:400;font-size:11px;color:var(--muted)">'+f.via+'</span>'+
+          '</button></td>'+
+        '<td style="padding:4px 6px;text-align:right"><input type="number" step="any" min="0" id="emg-d-'+i+'" '+
+          'value="'+f.d+'" oninput="emgRecalcular('+i+')" style="'+numCss+'"></td>'+
+        '<td style="padding:4px 6px;text-align:right"><input type="number" step="any" min="0" id="emg-c-'+i+'" '+
+          'value="'+f.c+'" oninput="emgRecalcular('+i+')" style="'+numCss+'"></td>'+
+        '<td id="emg-mg-'+i+'" style="padding:4px 6px;text-align:right;font-variant-numeric:tabular-nums">'+
+          (peso?(Math.round(mg*1000)/1000)+' mg':'—')+'</td>'+
+        '<td id="emg-ml-'+i+'" style="padding:4px 6px;text-align:right;font-weight:700;color:var(--teal-d);'+
+          'font-variant-numeric:tabular-nums">'+((peso&&f.c)?(Math.round(ml*100)/100)+' mL':'—')+'</td>'+
+      '</tr>';
     }).join('')+'</tbody></table>'+
-    '<p style="font-size:11.5px;color:var(--muted);margin-top:8px">Volumen calculado para <b>'+peso+' kg</b>. '+
-    'Concentraciones de referencia — verifica la del vial que estás usando.</p>';
+    '<p style="font-size:11.5px;color:var(--muted);margin-top:8px">'+
+    (peso?'Volúmenes para <b>'+peso+' kg</b>. ':'')+
+    'Ajusta la dosis y la concentración según el vial que estés usando; los cambios quedan guardados en este registro.</p>';
 }
 function openEmergencia(){
   document.getElementById('modalBg').innerHTML=
@@ -2642,7 +2687,7 @@ function limpiarFormulario(){
   ['list-mpa','list-ind','list-mant','list-loco','list-postop','list-intraq'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
   const ajo=document.getElementById('aj_farmaco_otro');if(ajo)ajo.remove();
   registros=[];ajustesMant=[];scales={mpa:null,ind:null,intub:null,recup:null};
-  chartNotes=[];
+  chartNotes=[];emergenciaOverrides={};
   params=params.filter(p=>p.fixed);
   detenerTimer();
   currentSid=nuevoSid();
@@ -3222,7 +3267,8 @@ function estadoAJSON(){
     timerRunning,
     timerStartMs,
     sid:          currentSid,
-    chartNotes:   JSON.parse(JSON.stringify(chartNotes))
+    chartNotes:   JSON.parse(JSON.stringify(chartNotes)),
+    emergenciaOverrides: JSON.parse(JSON.stringify(emergenciaOverrides))
   };
 }
 
@@ -3317,6 +3363,7 @@ function restaurarSesion(estado){
   timerSecs   = estado.timerSecs   || 0;
   currentSid  = estado.sid || nuevoSid();
   chartNotes       = estado.chartNotes       || [];
+  emergenciaOverrides = estado.emergenciaOverrides || {};
   /* Compatibilidad: sesiones guardadas cuando inducción/extubación eran marcadores.
      Se vuelca su hora a los campos de "Configuración de registro". */
   if(estado.inductionMarker && estado.inductionMarker.time){
@@ -3765,6 +3812,7 @@ function init(){
       case 'bumpParam':       bumpParam(el.dataset.key, parseInt(el.dataset.delta)); break;
       case 'openEmergencia':  openEmergencia(); break;
       case 'eventoEmergencia': registrarEventoEmergencia(el.dataset.evento); break;
+      case 'registrarFarmacoEmg': registrarFarmacoEmergencia(parseInt(el.dataset.idx)); break;
       case 'registrar':       registrar(); break;
       case 'limpiarReg':      limpiarReg(); break;
       case 'setOrient':       setOrient(orient, el); break;
