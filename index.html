@@ -616,7 +616,7 @@ input[type=date],select,textarea{
       <div class="field"><label>Extubación</label><input type="time" id="f_extub"></div>
     </div>
     <div class="grid g3" style="margin-top:6px">
-      <div class="field"><label>Fluidoterapia (mL/kg/h)</label><input type="number" step="0.1" id="f_fluido" placeholder="5"></div>
+      <div class="field"><label>Fluidoterapia (mL/kg/h)</label><input type="number" step="0.1" id="f_fluido" value="3" placeholder="3"></div>
     </div>
   </div>
 
@@ -1351,6 +1351,7 @@ const DRUG_CATALOG={
     'Mepivacaína 2%',
     'Lidocaína 1% + Bupivacaína 0,25%','Lidocaína 2% + Bupivacaína 0,5%',
     'Morfina','Buprenorfina (adyuvante)','Dexmedetomidina (adyuvante)',
+    'Dexametasona (adyuvante)',
     'Otro'
   ],
   /* MEDICACIÓN POSTOPERATORIA */
@@ -1380,6 +1381,7 @@ const BLOCK_CATALOG=[
   'Intercostal','Interpleural',
   /* Cabeza y cuello */
   'Maxilar','Infraorbitario','Mandibular','Mentoniano','Trigémino',
+  'Alveolar inferior','Scalp block',
   'GIN','TONIC','Intraconal','Extraconal','Plexo cervical',
   /* Miembro anterior */
   'Plexo braquial','RUMM',
@@ -3218,6 +3220,9 @@ function cuerpoMail(){
 function initDefaults(){
   const f=document.getElementById('f_fecha');
   if(f && !f.value)f.value=fechaLocalISO();
+  /* Fluidoterapia parte en 3 mL/kg/h y queda editable */
+  const fl=document.getElementById('f_fluido');
+  if(fl && !fl.value) fl.value='3';
 }
 function precargarFarmacos(){
   /* Pre-agrega una fila vacía con lista desplegable en MPA, Inducción y Mantención
@@ -3657,11 +3662,14 @@ function refreshAjusteSelects(){
     'Gluconato de calcio','Bicarbonato de sodio','Sulfato de magnesio',
     'Otro'
   ];
-  /* Todos los fármacos disponibles (los cargados en mantención + el catálogo), en orden alfabético */
+  /* Los fármacos cargados en Mantenimiento (pestaña Técnica) van primero y
+     agrupados, para no quedar sepultados entre el catálogo general. */
   const mantDrugs = getDrugs('list-mant').map(d=>d.farmaco).filter((v,i,a)=>v&&a.indexOf(v)===i);
-  const allMant = [...new Set([...mantDrugs, ...AJUSTE_CATALOG])];
+  const resto = AJUSTE_CATALOG.filter(f=>mantDrugs.indexOf(f)===-1);
   const prevFarm = selFarm.value;
-  selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' + optList(allMant,prevFarm);
+  selFarm.innerHTML = '<option value="">Seleccionar fármaco…</option>' +
+    (mantDrugs.length ? '<optgroup label="En mantención">'+optList(mantDrugs,prevFarm)+'</optgroup>' : '') +
+    '<optgroup label="Otros fármacos">'+optList(resto,prevFarm)+'</optgroup>';
 
   /* Unidades: CRI + bolus + inhalatoria, en orden alfabético */
   const units = dedup([...UNIT_CATALOG.cri, ...UNIT_CATALOG.inhal, ...UNIT_CATALOG.bolus]);
