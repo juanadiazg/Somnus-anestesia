@@ -2561,14 +2561,32 @@ function registrarEventoEmergencia(texto){
   const log=document.getElementById('emg-log');
   if(log) log.innerHTML=renderEmergenciaLog();
 }
+/* Eventos ordenados por hora para mostrar, conservando el índice original
+   para poder editarlos o borrarlos aunque se corrija una hora. */
+function emergenciaOrdenados(){
+  return emergenciaEventos
+    .map((e,i)=>({e,i}))
+    .sort((a,b)=>String(a.e.hora).localeCompare(String(b.e.hora)));
+}
+function editEventoEmergenciaTime(i,v){
+  if(i<0||i>=emergenciaEventos.length||!v)return;
+  const ev=emergenciaEventos[i];
+  ev.hora = v.length===5 ? v+':00' : v;   /* algunos navegadores devuelven HH:MM */
+  ev.hm   = ev.hora.slice(0,5);
+  guardarSesion(true);renderChart();
+  const log=document.getElementById('emg-log');
+  if(log) log.innerHTML=renderEmergenciaLog();
+}
 function renderEmergenciaLog(){
   if(!emergenciaEventos.length) return '<div style="color:var(--muted);font-size:13px">Sin eventos registrados</div>';
-  return emergenciaEventos.map((e,i)=>
-    '<div style="display:flex;gap:8px;align-items:baseline;padding:3px 0;font-size:13px;border-bottom:1px solid var(--line-soft)">'+
-    '<b style="color:var(--red);min-width:62px;font-variant-numeric:tabular-nums">'+esc(e.hora)+'</b>'+
+  return emergenciaOrdenados().map(({e,i})=>
+    '<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px solid var(--line-soft)">'+
+    '<input type="time" step="1" value="'+esc(e.hora)+'" data-action="editEventoEmgTime" data-idx="'+i+'" '+
+      'style="border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12.5px;font-weight:700;'+
+      'color:var(--red);font-family:inherit;font-variant-numeric:tabular-nums;width:146px;flex-shrink:0">'+
     '<span style="flex:1">'+esc(e.texto)+'</span>'+
     '<button data-action="borrarEventoEmg" data-idx="'+i+'" title="Quitar" '+
-    'style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1">✕</button>'+
+    'style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;flex-shrink:0">✕</button>'+
     '</div>').join('');
 }
 function borrarEventoEmergencia(i){
@@ -3045,7 +3063,7 @@ function generarDocPDF(modo){
   function secEmergencia(c){
     if(!emergenciaEventos.length)return;
     section(c,'Eventos de emergencia');
-    lista(c,'',emergenciaEventos.map(e=>e.hora+' — '+e.texto),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
+    lista(c,'',emergenciaOrdenados().map(o=>o.e.hora+' — '+o.e.texto),enColumnas?F.noteF+0.5:7.5,enColumnas?F.noteL:3.6);
   }
 
   /* ---------- ENCABEZADO HOJA 1 ---------- */
@@ -3533,6 +3551,7 @@ function activarAutoGuardado(){
     var act = el && el.dataset && el.dataset.action;
     if(act === 'editRegTime'){ editRegTime(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editAjusteTime'){ editAjusteTime(parseInt(el.dataset.idx), el.value); return; }
+    if(act === 'editEventoEmgTime'){ editEventoEmergenciaTime(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editRegVal'){ editRegVal(parseInt(el.dataset.idx), el.dataset.key, el.value); return; }
     if(act === 'editRegPlano'){ editRegPlano(parseInt(el.dataset.idx), el.value); return; }
     if(act === 'editRegNota'){ editRegNota(parseInt(el.dataset.idx), el.value); return; }
